@@ -1,0 +1,31 @@
+{
+	"version": 3,
+	"cmakeMinimumRequired": {
+		"major": 3,
+		"minor": 22,
+		"patch": 0
+	},
+	"configurePresets": [
+		{
+			"name": "mingw64",
+			"displayName": "mingw64",
+			"description": "mingw64 build for host with Ninja generator",
+			"binaryDir": "${sourceDir}/build/mingw64",
+			"generator": "Ninja",
+			"toolchainFile": "${sourceDir}/mingw64.cmake",
+			"cacheVariables": {
+				"UNIT_TEST_ENABLED": "TRUE",
+				"MINGW64": "TRUE"
+			}
+		}
+	],
+	"buildPresets": [
+		{
+			"name": "mingw64",
+			"configurePreset": "mingw64",
+			"configuration": "Debug"
+		}
+	],
+	"testPresets": [
+	]
+}

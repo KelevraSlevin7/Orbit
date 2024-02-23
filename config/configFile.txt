@@ -1,0 +1,51 @@
+#Orbital Object Configuration File
+
+{
+    ObjectNumber = 0
+	mass	     = 2000
+	radius       = 20
+    positionX    = 400
+    positionY    = 400
+    velocityX    = 0.0
+	velocityY    = 0.0
+}
+
+{
+    ObjectNumber = 1
+	mass	     = 1
+	radius       = 4
+    positionX    = 360
+    positionY    = 400
+    velocityX    = 0.0
+	velocityY    = -8.8
+}
+
+{
+    ObjectNumber = 2
+	mass	     = 1
+	radius       = 6
+    positionX    = 580
+    positionY    = 400
+    velocityX    = 0.0
+	velocityY    = 2.5
+}
+
+{
+    ObjectNumber = 3
+	mass	     = 1
+	radius       = 8
+    positionX    = 400
+    positionY    = 700
+    velocityX    = -1.5
+	velocityY    = 0.0
+}
+
+{
+    ObjectNumber = 4
+	mass	     = 1
+	radius       = 10
+    positionX    = 400
+    positionY    = 100
+    velocityX    = 2.4
+	velocityY    = 0.0
+}
