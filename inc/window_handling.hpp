@@ -12,5 +12,7 @@ LRESULT CALLBACK    controlWindow_callback      (HWND hwnd, UINT uMsg, WPARAM wP
         bool        get_controlWindow_status    (void);
         int         get_simulationWindow_width  (void);
         int         get_simulationWindow_height (void);
+        bool        get_simulation_running      (void);
+        bool        get_simulation_reset_trigger(void);
 
 #endif /*WINDOWHANDLING_HPP*/

@@ -1,7 +1,20 @@
 #include <iostream>
 #include "window_handling.hpp"
 
-HWND hwndCalculationTimeText;
+HWND hwndText_CalculationTime;
+HWND hwndButton_Start;
+#define IDC_BUTTON_START    100
+HWND hwndButton_Stop;
+#define IDC_BUTTON_STOP     101
+HWND hwndButton_Reset;
+#define IDC_BUTTON_RESET    102
+
+#define BUTTON_WIDTH    150
+#define BUTTON_HEIGHT   70
+#define BUTTON_SPACING  20
+
+bool simulation_running{false};
+bool simulation_reset_trigger{false};
 
 bool simulationWindow_active{true};
 int simulationWindow_width{0};
@@ -48,14 +61,36 @@ LRESULT CALLBACK controlWindow_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 {
     switch(uMsg)
     {
-        case WM_DESTROY: {
+        case WM_DESTROY:
+        {
             controlWindow_active = false;
             break;
         }
+        case WM_COMMAND:
+        {
+            if (LOWORD(wParam) == IDC_BUTTON_START)
+            {
+                simulation_running = true;
+            }
+            else if (LOWORD(wParam) == IDC_BUTTON_STOP)
+            {
+                simulation_running = false;
+            }
+            else if (LOWORD(wParam) == IDC_BUTTON_RESET)
+            {
+                simulation_reset_trigger = true;
+            }
+            break;
+        }
         break;
+
+        default:
+        {
+            return DefWindowProc(hwnd, uMsg, wParam, lParam);
+        }
     }
 
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    return 0;
 }
 
 void createWindows(HINSTANCE hInstance, int nShowCmd, HWND &simulationWindow_handle, HWND &controlWindow_handle, int x_pos, int y_pos, int width, int height)
@@ -125,7 +160,7 @@ void createWindows(HINSTANCE hInstance, int nShowCmd, HWND &simulationWindow_han
 		0,                                      //Optional window styles
 		controlWindow_class.lpszClassName,      //Window class
 		"Orbital Object Control!",              //Window text
-		WS_OVERLAPPEDWINDOW | WS_VISIBLE,	    //Window style
+		WS_SYSMENU | WS_VISIBLE,	            //Window style
 		x_pos + width + 100, y_pos,             //position
 		600, 600,                               //size
 		NULL,                                   // Parent window    
@@ -141,29 +176,58 @@ void createWindows(HINSTANCE hInstance, int nShowCmd, HWND &simulationWindow_han
 	ShowWindow(controlWindow_handle, nShowCmd);
 
     //------------------------------------------------------------------------------------------------------------------------------------------
-	//-------------------------------------------control window buttons-------------------------------------------------------------------------
+	//-------------------------------------------control window content-------------------------------------------------------------------------
     //------------------------------------------------------------------------------------------------------------------------------------------
-    HWND hwndButton = CreateWindow( 
+    hwndButton_Start = CreateWindow( 
         "BUTTON",                                               // Predefined class; Unicode assumed
-        "OK",                                                   // Button text
+        "Start",                                                // Button text
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles
-        10,                                                     // x position 
-        10,                                                     // y position 
-        100,                                                    // Button width
-        100,                                                    // Button height
+        BUTTON_SPACING,                                         // x position
+        20,                                                     // y position
+        BUTTON_WIDTH,                                           // Button width
+        BUTTON_HEIGHT,                                          // Button height
         controlWindow_handle,                                   // Parent window
-        NULL,                                                   // No menu.
+        (HMENU)IDC_BUTTON_START,                                // control ID
         (HINSTANCE)GetWindowLongPtr(controlWindow_handle, GWLP_HINSTANCE), 
-        NULL);                                                  // Pointer not needed.
+        NULL                                                    // Pointer not needed.
+    );
 
-    hwndCalculationTimeText = CreateWindow("STATIC", "0", WS_VISIBLE | WS_CHILD | SS_LEFT | SS_SUNKEN, 200, 10, 160, 20, controlWindow_handle, NULL, hInstance, NULL);
+    hwndButton_Stop = CreateWindow( 
+        "BUTTON",                                               // Predefined class; Unicode assumed
+        "Stop",                                                 // Button text
+        WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles
+        BUTTON_SPACING,                                         // x position
+        2 * BUTTON_SPACING + BUTTON_HEIGHT,                     // y position
+        BUTTON_WIDTH,                                           // Button width
+        BUTTON_HEIGHT,                                          // Button height
+        controlWindow_handle,                                   // Parent window
+        (HMENU)IDC_BUTTON_STOP,                                 // control ID
+        (HINSTANCE)GetWindowLongPtr(controlWindow_handle, GWLP_HINSTANCE), 
+        NULL                                                    // Pointer not needed.
+    );
+
+    hwndButton_Reset = CreateWindow( 
+        "BUTTON",                                               // Predefined class; Unicode assumed
+        "Reset",                                                // Button text
+        WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles
+        BUTTON_SPACING,                                         // x position
+        3 * BUTTON_SPACING + 2 * BUTTON_HEIGHT,                 // y position
+        BUTTON_WIDTH,                                           // Button width
+        BUTTON_HEIGHT,                                          // Button height
+        controlWindow_handle,                                   // Parent window
+        (HMENU)IDC_BUTTON_RESET,                                // control ID
+        (HINSTANCE)GetWindowLongPtr(controlWindow_handle, GWLP_HINSTANCE), 
+        NULL                                                    // Pointer not needed.
+    );
+
+    hwndText_CalculationTime = CreateWindow("STATIC", "0", WS_VISIBLE | WS_CHILD | SS_LEFT | SS_SUNKEN, 200, 10, 160, 20, controlWindow_handle, NULL, hInstance, NULL);
 }
 
 void updateCalculationTimeText(long long int calculationDuration)
 {
     char text[30];
     sprintf(text, "Loop Time: %d us", calculationDuration);
-    SetWindowText(hwndCalculationTimeText, TEXT(text));
+    SetWindowText(hwndText_CalculationTime, TEXT(text));
 }
 
 bool get_simulationWindow_status(void)
@@ -184,4 +248,16 @@ int get_simulationWindow_width(void)
 int get_simulationWindow_height(void)
 {
     return simulationWindow_height;
+}
+
+bool get_simulation_running(void)
+{
+    return simulation_running;
+}
+
+bool get_simulation_reset_trigger(void)
+{
+    bool return_val = simulation_reset_trigger;
+    simulation_reset_trigger = false;
+    return return_val;
 }

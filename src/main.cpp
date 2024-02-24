@@ -69,14 +69,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Create Boids
     Simulation_Init();
+
+    //intial draw
+    Window_Loop();
+    Simulation_Loop(simulation_DC);
     
     while (running)
     {
         //receive messages from window interaction and process them
         Window_Loop();
-            
-        //Simulate Orbital Obejcts
-        Simulation_Loop(simulation_DC);
+        
+        if (get_simulation_running() == true)
+        {
+            //Simulate Orbital Obejcts
+            Simulation_Loop(simulation_DC);
+        }
     }
 
     return 0;
