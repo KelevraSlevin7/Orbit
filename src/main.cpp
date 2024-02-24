@@ -64,9 +64,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     HDC simulation_DC = GetDC(simulationWindow_handle);
     HDC control_DC = GetDC(controlWindow_handle);
 
-    //initialize draw Object
-    drawLib.update(static_cast<unsigned int*>(render_state.memory), render_state.height, render_state.width);
-
 	//Create Boids
     Simulation_Init();
 
