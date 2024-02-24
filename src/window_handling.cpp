@@ -2,12 +2,10 @@
 #include "window_handling.hpp"
 
 HWND hwndText_CalculationTime;
-HWND hwndButton_Start;
-#define IDC_BUTTON_START    100
-HWND hwndButton_Stop;
-#define IDC_BUTTON_STOP     101
+HWND hwndButton_StartStop;
+#define IDC_BUTTON_STARTSTOP    100
 HWND hwndButton_Reset;
-#define IDC_BUTTON_RESET    102
+#define IDC_BUTTON_RESET        101
 
 #define BUTTON_WIDTH    150
 #define BUTTON_HEIGHT   70
@@ -68,13 +66,18 @@ LRESULT CALLBACK controlWindow_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
         }
         case WM_COMMAND:
         {
-            if (LOWORD(wParam) == IDC_BUTTON_START)
+            if (LOWORD(wParam) == IDC_BUTTON_STARTSTOP)
             {
-                simulation_running = true;
-            }
-            else if (LOWORD(wParam) == IDC_BUTTON_STOP)
-            {
-                simulation_running = false;
+                if (simulation_running == true)
+                {
+                    simulation_running = false;
+                    SendMessage(hwndButton_StartStop, WM_SETTEXT, 0, (LPARAM)"Start");
+                }
+                else
+                {
+                    simulation_running = true;
+                    SendMessage(hwndButton_StartStop, WM_SETTEXT, 0, (LPARAM)"Stop");
+                }
             }
             else if (LOWORD(wParam) == IDC_BUTTON_RESET)
             {
@@ -178,7 +181,7 @@ void createWindows(HINSTANCE hInstance, int nShowCmd, HWND &simulationWindow_han
     //------------------------------------------------------------------------------------------------------------------------------------------
 	//-------------------------------------------control window content-------------------------------------------------------------------------
     //------------------------------------------------------------------------------------------------------------------------------------------
-    hwndButton_Start = CreateWindow( 
+    hwndButton_StartStop = CreateWindow( 
         "BUTTON",                                               // Predefined class; Unicode assumed
         "Start",                                                // Button text
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles
@@ -187,21 +190,7 @@ void createWindows(HINSTANCE hInstance, int nShowCmd, HWND &simulationWindow_han
         BUTTON_WIDTH,                                           // Button width
         BUTTON_HEIGHT,                                          // Button height
         controlWindow_handle,                                   // Parent window
-        (HMENU)IDC_BUTTON_START,                                // control ID
-        (HINSTANCE)GetWindowLongPtr(controlWindow_handle, GWLP_HINSTANCE), 
-        NULL                                                    // Pointer not needed.
-    );
-
-    hwndButton_Stop = CreateWindow( 
-        "BUTTON",                                               // Predefined class; Unicode assumed
-        "Stop",                                                 // Button text
-        WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles
-        BUTTON_SPACING,                                         // x position
-        2 * BUTTON_SPACING + BUTTON_HEIGHT,                     // y position
-        BUTTON_WIDTH,                                           // Button width
-        BUTTON_HEIGHT,                                          // Button height
-        controlWindow_handle,                                   // Parent window
-        (HMENU)IDC_BUTTON_STOP,                                 // control ID
+        (HMENU)IDC_BUTTON_STARTSTOP,                            // control ID
         (HINSTANCE)GetWindowLongPtr(controlWindow_handle, GWLP_HINSTANCE), 
         NULL                                                    // Pointer not needed.
     );
@@ -211,7 +200,7 @@ void createWindows(HINSTANCE hInstance, int nShowCmd, HWND &simulationWindow_han
         "Reset",                                                // Button text
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles
         BUTTON_SPACING,                                         // x position
-        3 * BUTTON_SPACING + 2 * BUTTON_HEIGHT,                 // y position
+        2 * BUTTON_SPACING + 1 * BUTTON_HEIGHT,                 // y position
         BUTTON_WIDTH,                                           // Button width
         BUTTON_HEIGHT,                                          // Button height
         controlWindow_handle,                                   // Parent window
