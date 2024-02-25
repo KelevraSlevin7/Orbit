@@ -11,7 +11,7 @@ HWND hwndButton_Reset;
 #define BUTTON_HEIGHT   70
 #define BUTTON_SPACING  20
 
-bool simulation_running{false};
+bool simulation_running{true};
 bool simulation_reset_trigger{false};
 
 bool simulationWindow_active{true};
@@ -183,7 +183,7 @@ void createWindows(HINSTANCE hInstance, int nShowCmd, HWND &simulationWindow_han
     //------------------------------------------------------------------------------------------------------------------------------------------
     hwndButton_StartStop = CreateWindow( 
         "BUTTON",                                               // Predefined class; Unicode assumed
-        "Start",                                                // Button text
+        "Stop",                                                 // Button text
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles
         BUTTON_SPACING,                                         // x position
         20,                                                     // y position
