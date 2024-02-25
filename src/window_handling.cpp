@@ -181,6 +181,8 @@ void createWindows(HINSTANCE hInstance, int nShowCmd, HWND &simulationWindow_han
     //------------------------------------------------------------------------------------------------------------------------------------------
 	//-------------------------------------------control window content-------------------------------------------------------------------------
     //------------------------------------------------------------------------------------------------------------------------------------------
+
+    //create button for starting and stopping the simulation
     hwndButton_StartStop = CreateWindow( 
         "BUTTON",                                               // Predefined class; Unicode assumed
         "Stop",                                                 // Button text
@@ -195,6 +197,7 @@ void createWindows(HINSTANCE hInstance, int nShowCmd, HWND &simulationWindow_han
         NULL                                                    // Pointer not needed.
     );
 
+    //create button to reset the simulation to the initial state
     hwndButton_Reset = CreateWindow( 
         "BUTTON",                                               // Predefined class; Unicode assumed
         "Reset",                                                // Button text
@@ -209,6 +212,7 @@ void createWindows(HINSTANCE hInstance, int nShowCmd, HWND &simulationWindow_han
         NULL                                                    // Pointer not needed.
     );
 
+    //create text box to show calculation time of last simulation loop
     hwndText_CalculationTime = CreateWindow("STATIC", "0", WS_VISIBLE | WS_CHILD | SS_LEFT | SS_SUNKEN, 200, 10, 160, 20, controlWindow_handle, NULL, hInstance, NULL);
 }
 
