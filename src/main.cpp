@@ -1,5 +1,5 @@
 #include <windows.h>
-#include <CommCtrl.h>
+// #include <CommCtrl.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <iostream>
@@ -64,21 +64,33 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     HDC simulation_DC = GetDC(simulationWindow_handle);
     HDC control_DC = GetDC(controlWindow_handle);
 
-	//Create Boids
+    //intial message loop (so that the window size is updated)
+    Window_Loop();
+
+	//create objects to simulate
     Simulation_Init();
 
     //intial draw
-    Window_Loop();
     Simulation_Loop(simulation_DC);
     
+    //main loop
     while (running)
     {
         //receive messages from window interaction and process them
         Window_Loop();
         
-        if (get_simulation_running() == true)
+        //check if simulation needs to run
+        if (get_startstopButton_state() == kStart)
         {
-            //Simulate Orbital Obejcts
+            //Simulate Orbital Objects
+            Simulation_Loop(simulation_DC);
+        }
+
+        //check if reset needs to be performed
+        if (is_resetButton_triggered() == true)
+        {
+            Simulation_Init();
+            //draw one frame so the reset is visible
             Simulation_Loop(simulation_DC);
         }
     }
@@ -134,6 +146,9 @@ void Window_Loop(void)
 
 void Simulation_Init(void)
 {
+    //delete vector contents
+    orbitalObjectVector.clear();
+
 	//create all objects
     for (unsigned int iterator = 0; iterator < number_of_objects; iterator++)
     {
@@ -297,20 +312,32 @@ void setStartValues(void)
             double vel_x = distance - cos(sqrt(m2/(distance*distance*distance))) * distance;
             double vel_y = sin(sqrt(m2/(distance*distance*distance))) * distance;
 
-            if (number_of_objects >= 1){
-                orbitalObjectVector[0].setMass(m2);
-                orbitalObjectVector[0].setRadius(60.0);
-                orbitalObjectVector[0].setColor(0xff0000);
-                orbitalObjectVector[0].setPos(MidPosX, MidPosY);
-                orbitalObjectVector[0].setVel(0.0, 0.0);
-            }
-            if (number_of_objects >= 2){
-                orbitalObjectVector[1].setMass(1.0);
-                orbitalObjectVector[1].setRadius(30.0);
-                orbitalObjectVector[1].setColor(0x00ff00);
-                orbitalObjectVector[1].setPos(MidPosX + distance, MidPosY);
-                orbitalObjectVector[1].setVel(vel_x, vel_y);
-            }
+            orbitalObjectVector[0].setMass(m2);
+            orbitalObjectVector[0].setRadius(30.0);
+            orbitalObjectVector[0].setColor(0xff0000);
+            orbitalObjectVector[0].setPos(MidPosX, MidPosY);
+            orbitalObjectVector[0].setVel(0.0, 0.0);
+            // const char* objectItems[NUMBER_OF_OBJECTLIST_COLUMNS] = {1, m2, 30.0, MidPosX, MidPosY };
+            add_ObjectList_Item(1, m2, 30.0, MidPosX, MidPosY);
+
+            orbitalObjectVector[1].setMass(1.0);
+            orbitalObjectVector[1].setRadius(10.0);
+            orbitalObjectVector[1].setColor(0x00ff00);
+            orbitalObjectVector[1].setPos(MidPosX + distance, MidPosY);
+            orbitalObjectVector[1].setVel(vel_x, vel_y);
+            // const char* objectItems[NUMBER_OF_OBJECTLIST_COLUMNS] = {1, 1.0, 10.0, MidPosX + distance, MidPosY };
+            add_ObjectList_Item(2, 1.0, 10.0, MidPosX + distance, MidPosY);
+
+            add_ObjectList_Item(3, 1.0, 10.0, MidPosX + distance, MidPosY);
+            add_ObjectList_Item(4, 1.0, 10.0, MidPosX + distance, MidPosY);
+            add_ObjectList_Item(5, 1.0, 10.0, MidPosX + distance, MidPosY);
+            add_ObjectList_Item(6, 1.0, 10.0, MidPosX + distance, MidPosY);
+
+            remove_ObjectList_Item();
+
+            add_ObjectList_Item(7, 1.0, 10.0, MidPosX + distance, MidPosY);
+            add_ObjectList_Item(8, 1.0, 10.0, MidPosX + distance, MidPosY);
+
             break;
         }
 
