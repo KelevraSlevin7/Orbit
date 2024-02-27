@@ -31,14 +31,14 @@ CDraw drawLib;
 //------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------static functions------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------------------------
-        void        Simulation_Init             (void);
-        void        Simulation_Loop             (HDC simulation_DC);
-        void        Window_Loop                 (void);
-        void        drawObject                  (unsigned int activeBoid);
-        void        drawTrail                   (unsigned int activeBoid);
-        void        calculateStableOrbit_startVelocity(double bigObject_mass, double bigObject_posX, double bigObject_posY, double smallObject_posX, double smallObject_posY, double &smallObject_velX, double &smallObject_velY);
-        unsigned int getRandomColor             (void);
-        void        waitUntilLoopEnd            (std::chrono::time_point<std::chrono::high_resolution_clock> loop_begin);
+void        Simulation_Init             (void);
+void        Simulation_Loop             (HDC simulation_DC);
+void        Window_Loop                 (void);
+void        drawObject                  (unsigned int activeBoid);
+void        drawTrail                   (unsigned int activeBoid);
+void        calculateStableOrbit_startVelocity(double bigObject_mass, double bigObject_posX, double bigObject_posY, double smallObject_posX, double smallObject_posY, double &smallObject_velX, double &smallObject_velY);
+unsigned int getRandomColor             (void);
+void        waitUntilLoopEnd            (std::chrono::time_point<std::chrono::high_resolution_clock> loop_begin);
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------function declarations---------------------------------------------------------------------------
@@ -248,7 +248,7 @@ void drawTrail(unsigned int activeBoid)
 
 void calculateStableOrbit_startVelocity(double bigObject_mass, double bigObject_posX, double bigObject_posY, double smallObject_posX, double smallObject_posY, double &smallObject_velX, double &smallObject_velY)
 {
-    // Fg = Ff  (Gravitation = Fliehkraft)
+    // Fg = Fc  (gravitation = centrifugal force)
     // m1 * m2 / r^2 = m1 * w^2 * r
     // w = sqrt(m2/r^3)
     // vx = cos(w) * r
@@ -290,7 +290,7 @@ void waitUntilLoopEnd(std::chrono::time_point<std::chrono::high_resolution_clock
         loop_end = std::chrono::high_resolution_clock::now();
         loop_duration = std::chrono::duration_cast<std::chrono::microseconds>(loop_end - loop_begin).count();
     }
-    //output message if loop takes too long
+    //output message if calculation took too long
     if (loop_duration > 2 * LOOP_TIME_MS * 1000)
     {
         std::cout << "WARNING!!!! Loop time exceeded. Too many operations." << std::endl;
