@@ -5,8 +5,8 @@
 
 COrbitalObject::COrbitalObject(double mass, double radius, double start_position_x, double start_position_y, double start_velocity_x, double start_velocity_y, unsigned int color)
 {
-    mass_ = mass;
-    radius_ = radius;
+    setMass(mass);
+    setRadius(radius, false);
     setPos(start_position_x, start_position_y);
     setVel(start_velocity_x, start_velocity_y);
     setColor(color);
@@ -168,17 +168,21 @@ void COrbitalObject::setVel(double value_x, double value_y)
 void COrbitalObject::setMass(double mass)
 {
     mass_ = mass;
-
-    //set radius proportional to mass
-    radius_ = ((mass_ - MASS_MIN) / (MASS_MAX - MASS_MIN)) * (RADIUS_MAX - RADIUS_MIN) + RADIUS_MIN;
-
-    radius_ = clamp(RADIUS_MIN, RADIUS_MAX, radius_);
 }
 
-void COrbitalObject::setRadius(double radius)
+void COrbitalObject::setRadius(double radius, bool scaled)
 {
-    //overwriting radius calculated when mass was set
-    radius_ = radius;
+    if (scaled == false)
+    {
+        //overwriting radius calculated when mass was set
+        radius_ = radius;
+    }
+    else
+    {
+        //scale radius proportional to mass
+        radius_ = ((mass_ - MASS_MIN) / (MASS_MAX - MASS_MIN)) * (RADIUS_MAX - RADIUS_MIN) + RADIUS_MIN;
+        // radius_ = clamp(RADIUS_MIN, RADIUS_MAX, radius_);
+    }
 }
 
 void COrbitalObject::setColor(unsigned int color)

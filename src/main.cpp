@@ -1,5 +1,4 @@
 #include <windows.h>
-// #include <CommCtrl.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <iostream>
@@ -13,24 +12,20 @@
 #include "c_draw.hpp"
 #include "c_orbit.hpp"
 
-#define LOOP_TIME_MS 10
-
 struct Render_State{
-    int x_pos{100};
-    int y_pos{100};
-    int height{800};
-    int width{800};
+    int x_pos{INIT_SIMULATION_POS_X};
+    int y_pos{INIT_SIMULATION_POS_Y};
+    int height{INIT_SIMULATION_HEIGHT};
+    int width{INIT_SIMULATION_WIDTH};
     void* memory;
     BITMAPINFO bitmapinfo;
 };
 Render_State render_state;
 
 boolean running = true;
-// number of created boids
-unsigned int number_of_objects = 1;
-// creat Boid Object Vector
+//create Object Vector
 std::vector<COrbitalObject> orbitalObjectVector;
-
+//create Object to draw
 CDraw drawLib;
 
 //------------------------------------------------------------------------------------------------------------------------------------------
@@ -41,7 +36,7 @@ CDraw drawLib;
         void        Window_Loop                 (void);
         void        drawObject                  (unsigned int activeBoid);
         void        drawTrail                   (unsigned int activeBoid);
-        void        setStartValues              (void);
+        void        calculateStableOrbit_startVelocity(double bigObject_mass, double bigObject_posX, double bigObject_posY, double smallObject_posX, double smallObject_posY, double &smallObject_velX, double &smallObject_velY);
         unsigned int getRandomColor             (void);
         void        waitUntilLoopEnd            (std::chrono::time_point<std::chrono::high_resolution_clock> loop_begin);
 
@@ -50,9 +45,6 @@ CDraw drawLib;
 //------------------------------------------------------------------------------------------------------------------------------------------
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
-
-    std::cout << "Adress 0: " << &presets[0].objects[0].mass << std::endl;
-    std::cout << "Adress 1: " << &presets[1].objects[0].mass << std::endl;
     //create all windows
     HWND simulationWindow_handle;
     HWND controlWindow_handle;
@@ -144,6 +136,7 @@ void Simulation_Init(void)
     //delete vector contents
     orbitalObjectVector.clear();
 
+    //get currently selected preset
     int selected_preset = get_presets_selection();
     
 	//create all objects
@@ -157,20 +150,27 @@ void Simulation_Init(void)
         double start_velocity_y = presets[selected_preset].objects[iterator].start_velocity_y;
         unsigned int color      = getRandomColor();
 
-        std::cout << "iter: " << iterator << std::endl;
-        std::cout << "mass: " << mass << std::endl;
-        std::cout << "radius: " << radius << std::endl;
-        std::cout << "start_position_x: " << start_position_x << std::endl;
-        std::cout << "start_position_y: " << start_position_y << std::endl;
-        std::cout << "start_velocity_x: " << start_velocity_x << std::endl;
-        std::cout << "start_velocity_y: " << start_velocity_y << std::endl;
+        //check if stable orbit needs to be calculated and ignore the first object
+        if ((presets[selected_preset].calculate_stable == true) &&
+            (iterator != 0))
+        {
+            //assume first object is the massive one
+            calculateStableOrbit_startVelocity(
+                presets[selected_preset].objects[0].mass, 
+                presets[selected_preset].objects[0].start_position_x, 
+                presets[selected_preset].objects[0].start_position_y,
+                presets[selected_preset].objects[iterator].start_position_x, 
+                presets[selected_preset].objects[iterator].start_position_y,
+                start_velocity_x,
+                start_velocity_y
+            );
+        }
 
+        //construct object
 		COrbitalObject orbitalObject(mass, radius, start_position_x, start_position_y, start_velocity_x, start_velocity_y, color);
+        //add it to the object vector
 		orbitalObjectVector.push_back(orbitalObject);
     }
-
-    //set start values according to selected active set
-    setStartValues();
 }
 
 void Simulation_Loop(HDC simulation_DC)
@@ -181,13 +181,13 @@ void Simulation_Loop(HDC simulation_DC)
     //clear Screen
     drawLib.fillScreen(0x000000);
 
-    for (unsigned int iter = 0; iter < number_of_objects; iter++)
+    for (unsigned int iter = 0; iter < orbitalObjectVector.size(); iter++)
     {
         //update forces applied to every object
         orbitalObjectVector[iter].updateForce(orbitalObjectVector);
     }
 
-    for (unsigned int iter = 0; iter < number_of_objects; iter++)
+    for (unsigned int iter = 0; iter < orbitalObjectVector.size(); iter++)
     {
         //update object positions and trail
         orbitalObjectVector[iter].updatePosition();
@@ -244,50 +244,6 @@ void drawTrail(unsigned int activeBoid)
         trailIterator = trailIteratorNext;
         trailIteratorNext = (trailIterator + 1) % (TRAIL_LENGTH);
     }
-}
-
-
-
-void setStartValues(void)
-{
-    // double distance = 300.0;
-    // double MidPosX = static_cast<double>(render_state.width / 2);
-    // double MidPosY = static_cast<double>(render_state.height / 2);
-    // double m2 = 10000.0;
-
-    // // Fg = Ff  (Gravitation = Fliehkraft)
-    // // m1 * m2 / r^2 = m1 * w^2 * r
-    // // w = sqrt(m2/r^3)
-    // // vx = cos(w) * r
-    // // vy = sin(w) * r
-    // double vel_x = distance - cos(sqrt(m2/(distance*distance*distance))) * distance;
-    // double vel_y = sin(sqrt(m2/(distance*distance*distance))) * distance;
-
-    // orbitalObjectVector[0].setMass(m2);
-    // orbitalObjectVector[0].setRadius(30.0);
-    // orbitalObjectVector[0].setColor(0xff0000);
-    // orbitalObjectVector[0].setPos(MidPosX, MidPosY);
-    // orbitalObjectVector[0].setVel(0.0, 0.0);
-    // // const char* objectItems[NUMBER_OF_OBJECTLIST_COLUMNS] = {1, m2, 30.0, MidPosX, MidPosY };
-    // add_ObjectList_Item(1, m2, 30.0, MidPosX, MidPosY);
-
-    // orbitalObjectVector[1].setMass(1.0);
-    // orbitalObjectVector[1].setRadius(10.0);
-    // orbitalObjectVector[1].setColor(0x00ff00);
-    // orbitalObjectVector[1].setPos(MidPosX + distance, MidPosY);
-    // orbitalObjectVector[1].setVel(vel_x, vel_y);
-    // // const char* objectItems[NUMBER_OF_OBJECTLIST_COLUMNS] = {1, 1.0, 10.0, MidPosX + distance, MidPosY };
-    // add_ObjectList_Item(2, 1.0, 10.0, MidPosX + distance, MidPosY);
-
-    // add_ObjectList_Item(3, 1.0, 10.0, MidPosX + distance, MidPosY);
-    // add_ObjectList_Item(4, 1.0, 10.0, MidPosX + distance, MidPosY);
-    // add_ObjectList_Item(5, 1.0, 10.0, MidPosX + distance, MidPosY);
-    // add_ObjectList_Item(6, 1.0, 10.0, MidPosX + distance, MidPosY);
-
-    // remove_ObjectList_Item();
-
-    // add_ObjectList_Item(7, 1.0, 10.0, MidPosX + distance, MidPosY);
-    // add_ObjectList_Item(8, 1.0, 10.0, MidPosX + distance, MidPosY);
 }
 
 void calculateStableOrbit_startVelocity(double bigObject_mass, double bigObject_posX, double bigObject_posY, double smallObject_posX, double smallObject_posY, double &smallObject_velX, double &smallObject_velY)

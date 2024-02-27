@@ -3,15 +3,8 @@
 
 #include <vector>
 #include <iomanip>
-#include <chrono>
+#include "config.hpp"
 #include "utils.hpp"
-
-#define TRAIL_LENGTH                100
-
-#define MASS_MIN                    1.0
-#define MASS_MAX                    20.0
-#define RADIUS_MIN                  5.0
-#define RADIUS_MAX                  15.0
 
 //#define USE_EULER_ALGHORITHM
 #define USE_VERLET_ALGHORITHM
@@ -43,12 +36,12 @@ public:
     void            setPos                  (double posX, double posY);
     void            setVel                  (double value_x, double value_y);
     void            setMass                 (double mass);
-    void            setRadius               (double radius);
+    void            setRadius               (double radius, bool scaled);
     void            setColor                (unsigned int color);
     void            outputInformation       (int instance);
 
 private:
-    enum class EnSimulationAlgorithm : uint8_t
+    enum class EnSimulationAlgorithm : int
     {
         kEuler   = 0U,
         kVerlet  = 1U

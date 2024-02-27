@@ -16,10 +16,6 @@ HWND hwndButton_LoadPreset;
 #define IDC_LISTVIEW_OBJECTS    104
 HWND hwndText_CalculationTime;
 
-#define BUTTON_WIDTH    150
-#define BUTTON_HEIGHT   70
-#define BUTTON_SPACING  20
-
 bool simulationWindow_active{true};
 int simulationWindow_width{0};
 int simulationWindow_height{0};
@@ -180,10 +176,10 @@ void createWindows(HINSTANCE hInstance, int nShowCmd, HWND &simulationWindow_han
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,	    //Window style
 		x_pos, y_pos,                           //position
 		width, height,                          //size
-		NULL,                                   // Parent window    
-		NULL,                                   // Menu
-		hInstance,                              // Instance handle
-		NULL                                    // Additional application data
+		NULL,                                   //Parent window    
+		NULL,                                   //Menu
+		hInstance,                              //Instance handle
+		NULL                                    //Additional application data
 		);
 
 	if (simulationWindow_handle == NULL)
@@ -219,10 +215,10 @@ void createWindows(HINSTANCE hInstance, int nShowCmd, HWND &simulationWindow_han
 		WS_SYSMENU | WS_VISIBLE,	            //Window style
 		x_pos + width + 100, y_pos,             //position
 		800, 800,                               //size
-		NULL,                                   // Parent window    
-		NULL,                                   // Menu
-		hInstance,                              // Instance handle
-		NULL                                    // Additional application data
+		NULL,                                   //Parent window    
+		NULL,                                   //Menu
+		hInstance,                              //Instance handle
+		NULL                                    //Additional application data
 		);
 
 	if (controlWindow_handle == NULL)
@@ -370,15 +366,6 @@ void add_ObjectList_Item(int i_number, double d_mass, double d_radius, double d_
         "Start Pos X",
         "Start Pos Y"
     };
-
-    // const char* objectListItem[NUMBER_OF_OBJECTLIST_COLUMNS] = 
-    // {
-    //     "c_number",
-    //     "c_mass",
-    //     "Radius",
-    //     "Start Pos X",
-    //     "Start Pos Y"
-    // };
 
     createListView_Item(hwndListView_Objects, objectListItem, NUMBER_OF_OBJECTLIST_COLUMNS);
 }
