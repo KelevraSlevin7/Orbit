@@ -31,14 +31,15 @@ CDraw drawLib;
 //------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------static functions------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------------------------
-void        Simulation_Init             (void);
-void        Simulation_Loop             (HDC simulation_DC);
-void        Window_Loop                 (void);
-void        drawObject                  (unsigned int activeBoid);
-void        drawTrail                   (unsigned int activeBoid);
-void        calculateStableOrbit_startVelocity(double bigObject_mass, double bigObject_posX, double bigObject_posY, double smallObject_posX, double smallObject_posY, double &smallObject_velX, double &smallObject_velY);
-unsigned int getRandomColor             (void);
-void        waitUntilLoopEnd            (std::chrono::time_point<std::chrono::high_resolution_clock> loop_begin);
+void            Simulation_Init                     (void);
+void            Simulation_Loop                     (HDC simulation_DC);
+void            Window_Loop                         (void);
+void            drawObject                          (unsigned int activeBoid);
+void            drawTrail                           (unsigned int activeBoid);
+void            calculateStableOrbit_startVelocity  (double bigObject_mass, double bigObject_posX, double bigObject_posY, double smallObject_posX, double smallObject_posY, double &smallObject_velX, double &smallObject_velY);
+unsigned int    getRandomColor                      (void);
+void            updateWindowSize                    (int width, int height);
+void            waitUntilLoopEnd                    (std::chrono::time_point<std::chrono::high_resolution_clock> loop_begin);
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------function declarations---------------------------------------------------------------------------
@@ -75,10 +76,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         }
 
         //check if reset needs to be performed
-        if (is_resetButton_triggered() == true)
+        if ((is_resetButton_triggered() == true) ||
+            (is_loadPresetButton_triggered() == true))
         {
             Simulation_Init();
-            //draw one frame so the reset is visible
+            //draw one frame so the reset is visible if simulation is stopped
             Simulation_Loop(simulation_DC);
         }
     }
@@ -99,29 +101,10 @@ void Window_Loop(void)
     if ((get_simulationWindow_width() != render_state.width) ||
         (get_simulationWindow_height() != render_state.height))
     {
-        render_state.width = get_simulationWindow_width();
-        render_state.height = get_simulationWindow_height();
-
-        //update buffer with new window size
-        if (render_state.memory)
-        {
-            VirtualFree(render_state.memory, 0, MEM_RELEASE);
-        }
-        int buffer_size = render_state.width * render_state.height * sizeof(unsigned int);
-        render_state.memory = VirtualAlloc(0, buffer_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-
-        render_state.bitmapinfo.bmiHeader.biSize = sizeof(render_state.bitmapinfo.bmiHeader);
-        render_state.bitmapinfo.bmiHeader.biWidth = render_state.width;
-        render_state.bitmapinfo.bmiHeader.biHeight = render_state.height;
-        render_state.bitmapinfo.bmiHeader.biPlanes = 1;
-        render_state.bitmapinfo.bmiHeader.biBitCount = 32;
-        render_state.bitmapinfo.bmiHeader.biCompression = BI_RGB;
-
-        //update drawLib memory adress and height and width
-        drawLib.update(static_cast<unsigned int*>(render_state.memory), render_state.height, render_state.width);
+        updateWindowSize(get_simulationWindow_width(), get_simulationWindow_height());
     }
 
-    //stop program is any window is closed
+    //stop program if any window is closed
     //ToDo: only stop when both are closed
     //ToDo: add possibility to open closed windows again
     if ((get_simulationWindow_status() == false) ||
@@ -170,6 +153,9 @@ void Simulation_Init(void)
 		COrbitalObject orbitalObject(mass, radius, start_position_x, start_position_y, start_velocity_x, start_velocity_y, color);
         //add it to the object vector
 		orbitalObjectVector.push_back(orbitalObject);
+
+        //add object data to ListView item
+        addObjectListItem(iterator, mass, radius, start_position_x, start_position_y);
     }
 }
 
@@ -273,6 +259,30 @@ unsigned int getRandomColor(void)
     color_b = static_cast<unsigned int>(static_cast<double>(0xFFu) * color.rgb.b);
 
     return ((color_r << 16) | (color_g << 8) | (color_b));
+}
+
+void updateWindowSize(int width, int height)
+{
+        render_state.width = width;
+        render_state.height = height;
+
+        //update buffer with new window size
+        if (render_state.memory)
+        {
+            VirtualFree(render_state.memory, 0, MEM_RELEASE);
+        }
+        int buffer_size = render_state.width * render_state.height * sizeof(unsigned int);
+        render_state.memory = VirtualAlloc(0, buffer_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+
+        render_state.bitmapinfo.bmiHeader.biSize = sizeof(render_state.bitmapinfo.bmiHeader);
+        render_state.bitmapinfo.bmiHeader.biWidth = render_state.width;
+        render_state.bitmapinfo.bmiHeader.biHeight = render_state.height;
+        render_state.bitmapinfo.bmiHeader.biPlanes = 1;
+        render_state.bitmapinfo.bmiHeader.biBitCount = 32;
+        render_state.bitmapinfo.bmiHeader.biCompression = BI_RGB;
+
+        //update drawLib memory adress and height and width
+        drawLib.update(static_cast<unsigned int*>(render_state.memory), render_state.height, render_state.width);
 }
 
 void waitUntilLoopEnd(std::chrono::time_point<std::chrono::high_resolution_clock> loop_begin)
