@@ -8,6 +8,7 @@
 #include <limits>
 #include <fstream>
 #include <algorithm>
+#include "config.hpp"
 #include "window_handling.hpp"
 #include "c_draw.hpp"
 #include "c_orbit.hpp"
@@ -30,9 +31,29 @@ unsigned int number_of_objects = 1;
 // creat Boid Object Vector
 std::vector<COrbitalObject> orbitalObjectVector;
 
-unsigned int activeSet = 1;
-
 CDraw drawLib;
+
+presetStruct preset0 = {
+    presetNames[0],
+    2,
+    (10000.0,   30.0,   200.0,    200.0,    0.0,    0.0),
+    (1.0,       10.0,   500.0,    200.0,    0.0,    0.0)
+};
+
+presetStruct preset1 = {
+    presetNames[1],
+    3,
+    (200.0,     10.0,   200.0,  200.0,  0.0,    0.0),
+    (20.0,      5.0,    120.0,  200.0,  0.0,    -1.9),
+    (20.0,      5.0,    280.0,  200.0,  0.0,    1.9)
+};
+
+presetStruct preset2 = {
+    presetNames[2],
+    1,
+    (10000.0,    30.0,  0.0,    0.0,    0.0,    0.0)
+};
+std::vector<presetStruct> presetVector;
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------static functions------------------------------------------------------------------------------
@@ -42,9 +63,8 @@ CDraw drawLib;
         void        Window_Loop                 (void);
         void        drawObject                  (unsigned int activeBoid);
         void        drawTrail                   (unsigned int activeBoid);
-        int         getCommandLineArguments     (void);
         void        setStartValues              (void);
-        void        readConfigFile              (void);
+        unsigned int getRandomColor             (void);
         void        waitUntilLoopEnd            (std::chrono::time_point<std::chrono::high_resolution_clock> loop_begin);
 
 //------------------------------------------------------------------------------------------------------------------------------------------
@@ -52,10 +72,9 @@ CDraw drawLib;
 //------------------------------------------------------------------------------------------------------------------------------------------
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
-    if (getCommandLineArguments() == 1)
-    {
-        return 1;
-    }
+    presetVector.push_back(preset0);
+    presetVector.push_back(preset1);
+    presetVector.push_back(preset2);
 
     //create all windows
     HWND simulationWindow_handle;
@@ -94,7 +113,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Simulation_Loop(simulation_DC);
         }
     }
-
     return 0;
 }
 
@@ -149,10 +167,34 @@ void Simulation_Init(void)
     //delete vector contents
     orbitalObjectVector.clear();
 
+    int selected_preset = get_presets_selection();
+    
 	//create all objects
-    for (unsigned int iterator = 0; iterator < number_of_objects; iterator++)
+    for (unsigned int iterator = 0; iterator < presetVector[selected_preset].number_of_objects; iterator++)
     {
-		COrbitalObject orbitalObject(static_cast<float>(render_state.width), static_cast<float>(render_state.height));
+        // double mass = presetVector[selected_preset].objects[iterator].mass;
+        // double radius = presetVector[selected_preset].objects[iterator].radius;
+        // double start_position_x = presetVector[selected_preset].objects[iterator].start_position_x;
+        // double start_position_y = presetVector[selected_preset].objects[iterator].start_position_y;
+        // double start_velocity_x = presetVector[selected_preset].objects[iterator].start_velocity_x;
+        // double start_velocity_y = presetVector[selected_preset].objects[iterator].start_velocity_y;
+        unsigned int color = getRandomColor();
+        double mass = preset0.objects[iterator].mass;
+        double radius = preset0.objects[iterator].radius;
+        double start_position_x = preset0.objects[iterator].start_position_x;
+        double start_position_y = preset0.objects[iterator].start_position_y;
+        double start_velocity_x = preset0.objects[iterator].start_velocity_x;
+        double start_velocity_y = preset0.objects[iterator].start_velocity_y;
+
+        std::cout << "iter: " << iterator << std::endl;
+        std::cout << "mass: " << mass << std::endl;
+        std::cout << "radius: " << radius << std::endl;
+        std::cout << "start_position_x: " << start_position_x << std::endl;
+        std::cout << "start_position_y: " << start_position_y << std::endl;
+        std::cout << "start_velocity_x: " << start_velocity_x << std::endl;
+        std::cout << "start_velocity_y: " << start_velocity_y << std::endl;
+
+		COrbitalObject orbitalObject(mass, radius, start_position_x, start_position_y, start_velocity_x, start_velocity_y, color);
 		orbitalObjectVector.push_back(orbitalObject);
     }
 
@@ -233,217 +275,77 @@ void drawTrail(unsigned int activeBoid)
     }
 }
 
-int getCommandLineArguments(void)
-{
-	if (__argc != 3)
-	{
-		std::cout << "Expected Arguments are: '...exe objectNumber setSelection'" << std::endl;
-        std::cout << "        objectNumber: number of Objects that will be simulated." << std::endl;
-        std::cout << "        setSelection:" << std::endl;
-        std::cout << "            0 -> Using configFile" << std::endl;
-        std::cout << "            1 -> 3 Body System with 'stable' orbit" << std::endl;
-        std::cout << "            2 -> i dont know yet" << std::endl;
-        std::cout << "            X -> random" << std::endl;
-        std::cout << std::endl;
-		return 1;
-	}
-	else
-	{
-        if (atoi(__argv[1]) == 0)
-        {
-            std::cout << "Number of Objects cannot be 0" << std::endl;
-            std::cout << std::endl;
-            return 1;
-        }
-        //set values
-		number_of_objects = atoi(__argv[1]);
-		std::cout << "Number of Orbital Objects that will be simulated: " << number_of_objects << std::endl;
-        activeSet = atoi(__argv[2]);
-        std::cout << "Active Set: " << activeSet << std::endl;
-        std::cout << std::endl;
-        return 0;
-	}
-}
+
 
 void setStartValues(void)
 {
-    switch (activeSet)
-    {
-        case 0:
-            readConfigFile();
-            break;
-        case 1:
-            if (number_of_objects >= 1){
-                orbitalObjectVector[0].setMass(200.0);
-                orbitalObjectVector[0].setRadius(10.0);
-                orbitalObjectVector[0].setColor(0x0000ff);
-                orbitalObjectVector[0].setPos(static_cast<double>(render_state.width / 2), static_cast<double>(render_state.height / 2));
-                orbitalObjectVector[0].setVel(0.0, 0.0);
+    // double distance = 300.0;
+    // double MidPosX = static_cast<double>(render_state.width / 2);
+    // double MidPosY = static_cast<double>(render_state.height / 2);
+    // double m2 = 10000.0;
 
-            }
-            if (number_of_objects >= 2){
-                orbitalObjectVector[1].setMass(20.0);
-                orbitalObjectVector[1].setRadius(5.0);
-                orbitalObjectVector[1].setColor(0x00ff00);
-                orbitalObjectVector[1].setPos(static_cast<double>(render_state.width / 2) - 80.0, static_cast<double>(render_state.height / 2));
-                orbitalObjectVector[1].setVel(0.0, -1.9);
-            }
-            if (number_of_objects >= 3){
-                orbitalObjectVector[2].setMass(20.0);
-                orbitalObjectVector[2].setRadius(5.0);
-                orbitalObjectVector[2].setColor(0xff0000);
-                orbitalObjectVector[2].setPos(static_cast<double>(render_state.width / 2) + 80.0, static_cast<double>(render_state.height / 2));
-                orbitalObjectVector[2].setVel(0.0, 1.9);
-            }
-            break;
+    // // Fg = Ff  (Gravitation = Fliehkraft)
+    // // m1 * m2 / r^2 = m1 * w^2 * r
+    // // w = sqrt(m2/r^3)
+    // // vx = cos(w) * r
+    // // vy = sin(w) * r
+    // double vel_x = distance - cos(sqrt(m2/(distance*distance*distance))) * distance;
+    // double vel_y = sin(sqrt(m2/(distance*distance*distance))) * distance;
 
-        case 2:
-        {
-            double distance = 300.0;
-            double MidPosX = static_cast<double>(render_state.width / 2);
-            double MidPosY = static_cast<double>(render_state.height / 2);
-            double m2 = 10000.0;
+    // orbitalObjectVector[0].setMass(m2);
+    // orbitalObjectVector[0].setRadius(30.0);
+    // orbitalObjectVector[0].setColor(0xff0000);
+    // orbitalObjectVector[0].setPos(MidPosX, MidPosY);
+    // orbitalObjectVector[0].setVel(0.0, 0.0);
+    // // const char* objectItems[NUMBER_OF_OBJECTLIST_COLUMNS] = {1, m2, 30.0, MidPosX, MidPosY };
+    // add_ObjectList_Item(1, m2, 30.0, MidPosX, MidPosY);
 
-            // Fg = Ff  (Gravitation = Fliehkraft)
-            // m1 * m2 / r^2 = m1 * w^2 * r
-            // w = sqrt(m2/r^3)
-            // vx = cos(w) * r
-            // vy = sin(w) * r
-            double vel_x = distance - cos(sqrt(m2/(distance*distance*distance))) * distance;
-            double vel_y = sin(sqrt(m2/(distance*distance*distance))) * distance;
+    // orbitalObjectVector[1].setMass(1.0);
+    // orbitalObjectVector[1].setRadius(10.0);
+    // orbitalObjectVector[1].setColor(0x00ff00);
+    // orbitalObjectVector[1].setPos(MidPosX + distance, MidPosY);
+    // orbitalObjectVector[1].setVel(vel_x, vel_y);
+    // // const char* objectItems[NUMBER_OF_OBJECTLIST_COLUMNS] = {1, 1.0, 10.0, MidPosX + distance, MidPosY };
+    // add_ObjectList_Item(2, 1.0, 10.0, MidPosX + distance, MidPosY);
 
-            orbitalObjectVector[0].setMass(m2);
-            orbitalObjectVector[0].setRadius(30.0);
-            orbitalObjectVector[0].setColor(0xff0000);
-            orbitalObjectVector[0].setPos(MidPosX, MidPosY);
-            orbitalObjectVector[0].setVel(0.0, 0.0);
-            // const char* objectItems[NUMBER_OF_OBJECTLIST_COLUMNS] = {1, m2, 30.0, MidPosX, MidPosY };
-            add_ObjectList_Item(1, m2, 30.0, MidPosX, MidPosY);
+    // add_ObjectList_Item(3, 1.0, 10.0, MidPosX + distance, MidPosY);
+    // add_ObjectList_Item(4, 1.0, 10.0, MidPosX + distance, MidPosY);
+    // add_ObjectList_Item(5, 1.0, 10.0, MidPosX + distance, MidPosY);
+    // add_ObjectList_Item(6, 1.0, 10.0, MidPosX + distance, MidPosY);
 
-            orbitalObjectVector[1].setMass(1.0);
-            orbitalObjectVector[1].setRadius(10.0);
-            orbitalObjectVector[1].setColor(0x00ff00);
-            orbitalObjectVector[1].setPos(MidPosX + distance, MidPosY);
-            orbitalObjectVector[1].setVel(vel_x, vel_y);
-            // const char* objectItems[NUMBER_OF_OBJECTLIST_COLUMNS] = {1, 1.0, 10.0, MidPosX + distance, MidPosY };
-            add_ObjectList_Item(2, 1.0, 10.0, MidPosX + distance, MidPosY);
+    // remove_ObjectList_Item();
 
-            add_ObjectList_Item(3, 1.0, 10.0, MidPosX + distance, MidPosY);
-            add_ObjectList_Item(4, 1.0, 10.0, MidPosX + distance, MidPosY);
-            add_ObjectList_Item(5, 1.0, 10.0, MidPosX + distance, MidPosY);
-            add_ObjectList_Item(6, 1.0, 10.0, MidPosX + distance, MidPosY);
-
-            remove_ObjectList_Item();
-
-            add_ObjectList_Item(7, 1.0, 10.0, MidPosX + distance, MidPosY);
-            add_ObjectList_Item(8, 1.0, 10.0, MidPosX + distance, MidPosY);
-
-            break;
-        }
-
-        default:
-            //default constructor sets everything to random
-            break;
-    }
+    // add_ObjectList_Item(7, 1.0, 10.0, MidPosX + distance, MidPosY);
+    // add_ObjectList_Item(8, 1.0, 10.0, MidPosX + distance, MidPosY);
 }
 
-void readConfigFile(void)
+void calculateStableOrbit_startVelocity(double bigObject_mass, double bigObject_posX, double bigObject_posY, double smallObject_posX, double smallObject_posY, double &smallObject_velX, double &smallObject_velY)
 {
-    unsigned int objectNumber = 0;
-    double mass = 1.0;
-    double radius = 1.0;
-    double positionX = 0.0;
-    double positionY = 0.0; 
-    double velocityX = 0.0;
-    double velocityY = 0.0;
+    // Fg = Ff  (Gravitation = Fliehkraft)
+    // m1 * m2 / r^2 = m1 * w^2 * r
+    // w = sqrt(m2/r^3)
+    // vx = cos(w) * r
+    // vy = sin(w) * r
+    double distance = sqrt(pow((bigObject_posX - smallObject_posX), 2) + pow((bigObject_posY - smallObject_posY), 2));
+    smallObject_velX = distance - cos(sqrt(bigObject_mass / (distance*distance*distance))) * distance;
+    smallObject_velY = sin(sqrt(bigObject_mass / (distance*distance*distance))) * distance;
+}
 
-    //try to open config file
-    std::ifstream configFile ("../../config/configFile.txt");
-    if (configFile.is_open())
-    {
-        std::cout << "Using object values from config File." << std::endl;
+unsigned int getRandomColor(void)
+{
+    static CColor color;
+    color.hsv.h = (static_cast<int>(color.hsv.h) % 360) + 50; //hue (color)
+    color.hsv.s = 1.0;                          //saturation
+    color.hsv.v = 1.0;                          //value
+    color.rgb = color.hsv2rgb(color.hsv);
 
-        std::string line;
-        //get 1 line from the file
-        while(getline(configFile, line))
-        {
-            //remove all whitespaces
-            line.erase(std::remove_if(line.begin(), line.end(), isspace), line.end());
-            //if the line is empty or starts with a comment -> get a new line
-            if(line[0] == '#' || line.empty())
-            {
-                continue;
-            }
+    unsigned int color_r, color_g, color_b;
 
-            //find the position of the "=" sign
-            auto delimiterPos = line.find("=");
-            auto objectStart = line.find("{");
-            auto objectEnd = line.find("}");
+    color_r = static_cast<unsigned int>(static_cast<double>(0xFFu) * color.rgb.r);
+    color_g = static_cast<unsigned int>(static_cast<double>(0xFFu) * color.rgb.g);
+    color_b = static_cast<unsigned int>(static_cast<double>(0xFFu) * color.rgb.b);
 
-            //stop searching if no "=" AND no "{" AND no "}" was in the string, break the loop
-            if ((delimiterPos == std::string::npos) && (objectStart == std::string::npos) && (objectEnd == std::string::npos))
-            {
-                std::cout << "Wrong format used for config file. Stopping..." << std::endl;
-                break;
-            }
-
-            //new object --> reset all values
-            if (objectStart != std::string::npos)
-            {
-                objectNumber = 0;
-                mass = 1.0;
-                radius = 1.0;
-                positionX = 0.0;
-                positionY = 0.0;
-                velocityX = 0.0;
-                velocityY = 0.0;
-                continue;
-            }
-
-            //object finished --> write all values
-            if (objectEnd != std::string::npos)
-            {
-                if (objectNumber < number_of_objects)
-                {
-                    orbitalObjectVector[objectNumber].setMass(mass);
-                    orbitalObjectVector[objectNumber].setRadius(radius);
-                    orbitalObjectVector[objectNumber].setPos(positionX, positionY);
-                    orbitalObjectVector[objectNumber].setVel(velocityX, velocityY);
-                }
-                continue;
-            }
-
-            if ((line.substr(0, delimiterPos)).compare("ObjectNumber") == 0U)
-                    objectNumber = atoi((line.substr(delimiterPos + 1)).c_str());
-
-            if ((line.substr(0, delimiterPos)).compare("mass") == 0U)
-                mass = atof((line.substr(delimiterPos + 1)).c_str());
-            
-            if ((line.substr(0, delimiterPos)).compare("radius") == 0U)
-                radius = atof((line.substr(delimiterPos + 1)).c_str());
-
-            if ((line.substr(0, delimiterPos)).compare("positionX") == 0U)
-                positionX = atof((line.substr(delimiterPos + 1)).c_str());
-
-            if ((line.substr(0, delimiterPos)).compare("positionY") == 0U)
-                positionY = atof((line.substr(delimiterPos + 1)).c_str());
-
-            if ((line.substr(0, delimiterPos)).compare("velocityX") == 0U)
-                velocityX = atof((line.substr(delimiterPos + 1)).c_str());
-
-            if ((line.substr(0, delimiterPos)).compare("velocityY") == 0U)
-                velocityY = atof((line.substr(delimiterPos + 1)).c_str());
-        }
-    }
-    else
-    {
-        std::cout << "Could not open config file." << std::endl;
-        TCHAR executablePath[MAX_PATH] = {0};
-        GetModuleFileNameA(NULL, executablePath, MAX_PATH);
-        std::cout << "Searched in same Folder as:" << std::endl;
-        std::cout << "    " << executablePath << std::endl;
-        std::cout << "Using default Parameter values." << std::endl;
-    }
+    return ((color_r << 16) | (color_g << 8) | (color_b));
 }
 
 void waitUntilLoopEnd(std::chrono::time_point<std::chrono::high_resolution_clock> loop_begin)

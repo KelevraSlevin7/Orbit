@@ -3,17 +3,13 @@
 #include <math.h>
 #include <iostream>
 
-COrbitalObject::COrbitalObject(double max_position_x, double max_position_y)
+COrbitalObject::COrbitalObject(double mass, double radius, double start_position_x, double start_position_y, double start_velocity_x, double start_velocity_y, unsigned int color)
 {
-    setPos(getRandomNumber(0.0, max_position_x), getRandomNumber(0.0, max_position_y));
-
-    //ToDo: maybe add random "velocity"
-    //setVel(0.0, 0.0);
-    setVel(getRandomNumber(-1.0, 1.0), getRandomNumber(-1.0, 1.0));
-
-    setRandomColor();
-
-    setMass(getRandomNumber(MASS_MIN, MASS_MAX));
+    mass_ = mass;
+    radius_ = radius;
+    setPos(start_position_x, start_position_y);
+    setVel(start_velocity_x, start_velocity_y);
+    setColor(color);
 }
 
 void COrbitalObject::updateForce(std::vector<COrbitalObject>& orbitalObjects)
@@ -195,23 +191,6 @@ void COrbitalObject::setColor(unsigned int color)
     {
         color_ = 0xffffff;
     }
-}
-
-void COrbitalObject::setRandomColor(void)
-{
-    static CColor color;
-    color.hsv.h = (static_cast<int>(color.hsv.h) % 360) + 50;//getRandomNumber(0.0, 360.0);  //hue (color)
-    color.hsv.s = 1.0;                          //saturation
-    color.hsv.v = 1.0;                          //value
-    color.rgb = color.hsv2rgb(color.hsv);
-
-    unsigned int color_r, color_g, color_b;
-
-    color_r = static_cast<unsigned int>(static_cast<double>(0xFFu) * color.rgb.r);
-    color_g = static_cast<unsigned int>(static_cast<double>(0xFFu) * color.rgb.g);
-    color_b = static_cast<unsigned int>(static_cast<double>(0xFFu) * color.rgb.b);
-
-    color_ = ((color_r << 16) | (color_g << 8) | (color_b));
 }
 
 void COrbitalObject::outputInformation(int instance)

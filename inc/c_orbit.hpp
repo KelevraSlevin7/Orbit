@@ -29,11 +29,10 @@ public:
         unsigned int y = 0;
     };
 
-	                COrbitalObject          (double max_position_x, double max_position_y);
+	                COrbitalObject          (double mass, double radius, double start_position_x, double start_position_y, double start_velocity_x, double start_velocity_y, unsigned int color);
     void            updateForce             (std::vector<COrbitalObject>& orbitalObjects);
     void            updatePosition          (void);
     void            updateTrail             (void);
-    void            updateOrbitalObject     (std::vector<COrbitalObject>& orbitalObjects);
     double          getDistanceToObject     (COrbitalObject &otherObject);
     double          getPosX                 (void);
     double          getPosY                 (void);
@@ -46,7 +45,6 @@ public:
     void            setMass                 (double mass);
     void            setRadius               (double radius);
     void            setColor                (unsigned int color);
-    void            setRandomColor          (void);
     void            outputInformation       (int instance);
 
 private:

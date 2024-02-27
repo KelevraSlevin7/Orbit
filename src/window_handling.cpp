@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include "config.hpp"
 #include "window_handling.hpp"
 
 HWND hwndButton_StartStop;
@@ -8,40 +9,38 @@ HWND hwndButton_StartStop;
 HWND hwndButton_Reset;
 #define IDC_BUTTON_RESET        101
 HWND hwndListView_Objects;
-#define IDC_LISTVIEW_OBJECTS    102
+#define IDC_COMBOBOX_PRESETS    102
+HWND hwndComboBox_Presets;
+#define IDC_BUTTON_LOADPRESET   103
+HWND hwndButton_LoadPreset;
+#define IDC_LISTVIEW_OBJECTS    104
 HWND hwndText_CalculationTime;
 
 #define BUTTON_WIDTH    150
 #define BUTTON_HEIGHT   70
 #define BUTTON_SPACING  20
 
-StartStopButton_State startstopButton_state{kStart};
-bool resetButton_trigger{false};
-
 bool simulationWindow_active{true};
 int simulationWindow_width{0};
 int simulationWindow_height{0};
-
 bool controlWindow_active{true};
 
-const char* objectListColums[NUMBER_OF_OBJECTLIST_COLUMNS] = 
-{
-    "Number",
-    "Mass",
-    "Radius",
-    "Start Pos X",
-    "Start Pos Y"
-};
+StartStopButton_State startstopButton_state{kStart};
+bool resetButton_trigger{false};
+int presets_selected_index{0};
+bool loadPresetButton_trigger{false};
+
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------static functions------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------------------------
 void    fillControlWindow       (HWND parentWindowHandle);
 HWND    createButton            (HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height, HMENU IDC);
-HWND    createListView          (HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** column_names, int numberOfColumns);
-HWND    createTextField         (HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height);
+HWND    createComboBox          (HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** item_names, int number_of_columns);
+HWND    createListView          (HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** column_names, int number_of_columns);
 void    createListView_Column   (HWND listviewHandle, int iCol, const char *text, int width);
-void    createListView_Item     (HWND listviewHandle, const char ** itemValues, int numberOfColumns);
+void    createListView_Item     (HWND listviewHandle, const char ** itemValues, int number_of_columns);
+HWND    createTextField         (HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height);
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------function declarations---------------------------------------------------------------------------
@@ -97,6 +96,7 @@ LRESULT CALLBACK controlWindow_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 
         case WM_COMMAND:
         {
+            //start stop button was pressed
             if (LOWORD(wParam) == IDC_BUTTON_STARTSTOP)
             {
                 //toggle Start Stop button when pressed
@@ -111,9 +111,25 @@ LRESULT CALLBACK controlWindow_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
                     SendMessage(hwndButton_StartStop, WM_SETTEXT, 0, (LPARAM)"Start");
                 }
             }
+            //reset button was pressed
             else if (LOWORD(wParam) == IDC_BUTTON_RESET)
             {
                 resetButton_trigger = true;
+            }
+            //loadPreset button was pressed
+            else if (LOWORD(wParam) == IDC_BUTTON_LOADPRESET)
+            {
+                loadPresetButton_trigger = true;
+            }
+
+            //comboBox item was selected
+            if (HIWORD(wParam) == CBN_SELCHANGE)
+            {
+                //presets comboBox item was selected
+                if ((HWND)lParam == hwndComboBox_Presets)
+                {
+                    presets_selected_index = SendMessage((HWND)lParam, (UINT)CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+                }
             }
             break;
         }
@@ -224,23 +240,15 @@ void fillControlWindow(HWND parentWindowHandle)
     //create button to reset the simulation to the initial state
     hwndButton_Reset = createButton(parentWindowHandle, "Reset", BUTTON_SPACING, 2 * BUTTON_SPACING + 1 * BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT, (HMENU)IDC_BUTTON_RESET);
 
+    //create button and comboBox for presets
+    hwndButton_LoadPreset = createButton(parentWindowHandle, "Load Preset", 200, 20, 150, 40, (HMENU)IDC_BUTTON_LOADPRESET);
+    hwndComboBox_Presets = createComboBox(parentWindowHandle, 200, 70, 150, 500, (HMENU)IDC_COMBOBOX_PRESETS, presetNames, NUMBER_OF_PRESETS); //height needs to be big, so the drop down menu can be seen
+    
     // create list of active objects
     hwndListView_Objects = createListView(parentWindowHandle, 200, 200, 500, 200, (HMENU)IDC_LISTVIEW_OBJECTS, objectListColums, NUMBER_OF_OBJECTLIST_COLUMNS);
-    
-    // const char* objectListItem[NUMBER_OF_OBJECTLIST_COLUMNS] = 
-    // {
-    //     "c_number",
-    //     "c_mass",
-    //     "Radius",
-    //     "Start Pos X",
-    //     "Start Pos Y"
-    // };
-
-    // createListView_Item(hwndListView_Objects, objectListItem, NUMBER_OF_OBJECTLIST_COLUMNS);
-    // createListView_Item(hwndListView_Objects, objectListItem, NUMBER_OF_OBJECTLIST_COLUMNS);
 
     //create text box to show calculation time of last simulation loop
-    hwndText_CalculationTime = createTextField(parentWindowHandle, "0", 200, 10, 160, 20);
+    hwndText_CalculationTime = createTextField(parentWindowHandle, "0", 500, 20, 160, 20);
 }
 
 HWND createButton(HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height, HMENU IDC)
@@ -261,7 +269,35 @@ HWND createButton(HWND parentWindowHandle, const char *name, int position_x, int
     );
 }
 
-HWND createListView(HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** column_names, int numberOfColumns)
+HWND createComboBox(HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** item_names, int number_of_columns)
+{
+    HWND comboBox_handle =  CreateWindowEx( 
+        0,                                                      //extended window styles
+        "COMBOBOX",                                             // Predefined class; Unicode assumed
+        "",                                                     // window name
+        WS_VISIBLE | WS_CHILD | WS_OVERLAPPED | CBS_DROPDOWN | CBS_HASSTRINGS,  // window style
+        position_x,                                             // x position
+        position_y,                                             // y position
+        width,                                                  // window width
+        height,                                                 // nutton height
+        parentWindowHandle,                                     // parent window handle
+        IDC,                                                    // control ID
+        (HINSTANCE)GetWindowLongPtr(parentWindowHandle, GWLP_HINSTANCE),  //handle to the instance
+        NULL                                                    // pointer to a value (not needed)
+    );
+
+    //add drop down items
+    for (int i = 0; i < number_of_columns; i++)
+    {
+        SendMessage(comboBox_handle, CB_ADDSTRING, (WPARAM)0, (LPARAM)item_names[i]);
+    }
+    //select first one as initial value
+    SendMessage (comboBox_handle, CB_SETCURSEL, (WPARAM) 0, (LPARAM) 0);
+
+    return comboBox_handle;
+}
+
+HWND createListView(HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** column_names, int number_of_columns)
 {
     HWND listView_handle = CreateWindowEx( 
         0,                                                      //extended window styles
@@ -282,7 +318,7 @@ HWND createListView(HWND parentWindowHandle, int position_x, int position_y, int
     SendMessage(listView_handle, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
 
     //create columns
-    for (int i = 0; i < numberOfColumns; i++)
+    for (int i = 0; i < number_of_columns; i++)
     {
         createListView_Column(listView_handle, i, column_names[i], 100);
     }
@@ -302,14 +338,14 @@ void createListView_Column(HWND listviewHandle, int iCol, const char *text, int 
 }
 
 int counter = 0;
-void createListView_Item(HWND listviewHandle, const char ** itemValues, int numberOfColumns)
+void createListView_Item(HWND listviewHandle, const char ** itemValues, int number_of_columns)
 {
     LVITEM lvi = {0};
     lvi.mask = LVIF_TEXT;
     lvi.pszText = (LPSTR)itemValues[0];
     ListView_InsertItem(listviewHandle, &lvi);
 
-    for (int i = 1; i < numberOfColumns; i++)
+    for (int i = 1; i < number_of_columns; i++)
     {
         ListView_SetItemText(listviewHandle, counter, i, (LPSTR)itemValues[i]);
     }
@@ -407,6 +443,18 @@ bool is_resetButton_triggered(void)
 {
     bool return_val = resetButton_trigger;
     resetButton_trigger = false;
+    return return_val;
+}
+
+int get_presets_selection(void)
+{
+    return presets_selected_index;
+}
+
+bool is_loadPresetButton_triggered(void)
+{
+    bool return_val = loadPresetButton_trigger;
+    loadPresetButton_trigger = false;
     return return_val;
 }
 
