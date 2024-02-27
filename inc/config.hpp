@@ -4,22 +4,13 @@
 #include <vector>
 
 #define NUMBER_OF_OBJECTLIST_COLUMNS 5
-inline const char* objectListColums[NUMBER_OF_OBJECTLIST_COLUMNS] = 
-{
-    "Number",
-    "Mass",
-    "Radius",
-    "Start Pos X",
-    "Start Pos Y"
-};
+extern const char* objectListColums[NUMBER_OF_OBJECTLIST_COLUMNS];
 
 #define NUMBER_OF_PRESETS   3
-inline const char * presetNames[NUMBER_OF_PRESETS] =
-{
-    "2 Body stable orbit",
-    "3 Body stable orbit",
-    "i dont know yet"
-};
+#define PRESET_0_NUMBER_OF_OBJECTS  2
+#define PRESET_1_NUMBER_OF_OBJECTS  3
+#define PRESET_2_NUMBER_OF_OBJECTS  1
+extern const char * presetNames[NUMBER_OF_PRESETS];
 
 struct objectStruct {
     double mass;
@@ -33,31 +24,11 @@ struct objectStruct {
 struct presetStruct {
     const char* presetName;
     int number_of_objects;
-    objectStruct objects[];
+    const objectStruct *objects;
 };
 
-// inline presetStruct preset0 = {
-//     presetNames[0],
-//     2,
-//     (10000.0,   30.0,   200.0,    200.0,    0.0,    0.0),
-//     (1.0,       10.0,   500.0,    200.0,    0.0,    0.0)
-// };
+extern const presetStruct presets[NUMBER_OF_PRESETS];
 
-// inline presetStruct preset1 = {
-//     presetNames[1],
-//     3,
-//     (200.0,     10.0,   200.0,  200.0,  0.0,    0.0),
-//     (20.0,      5.0,    120.0,  200.0,  0.0,    -1.9),
-//     (20.0,      5.0,    280.0,  200.0,  0.0,    1.9)
-// };
-
-// inline presetStruct preset2 = {
-//     presetNames[2],
-//     1,
-//     (10000.0,    30.0,  0.0,    0.0,    0.0,    0.0)
-// };
-
-
-
+extern int testVar;
 
 #endif /*CONFIG_HPP*/

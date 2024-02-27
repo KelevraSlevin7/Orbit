@@ -33,28 +33,6 @@ std::vector<COrbitalObject> orbitalObjectVector;
 
 CDraw drawLib;
 
-presetStruct preset0 = {
-    presetNames[0],
-    2,
-    (10000.0,   30.0,   200.0,    200.0,    0.0,    0.0),
-    (1.0,       10.0,   500.0,    200.0,    0.0,    0.0)
-};
-
-presetStruct preset1 = {
-    presetNames[1],
-    3,
-    (200.0,     10.0,   200.0,  200.0,  0.0,    0.0),
-    (20.0,      5.0,    120.0,  200.0,  0.0,    -1.9),
-    (20.0,      5.0,    280.0,  200.0,  0.0,    1.9)
-};
-
-presetStruct preset2 = {
-    presetNames[2],
-    1,
-    (10000.0,    30.0,  0.0,    0.0,    0.0,    0.0)
-};
-std::vector<presetStruct> presetVector;
-
 //------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------static functions------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------------------------
@@ -72,10 +50,9 @@ std::vector<presetStruct> presetVector;
 //------------------------------------------------------------------------------------------------------------------------------------------
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
-    presetVector.push_back(preset0);
-    presetVector.push_back(preset1);
-    presetVector.push_back(preset2);
 
+    std::cout << "Adress 0: " << &presets[0].objects[0].mass << std::endl;
+    std::cout << "Adress 1: " << &presets[1].objects[0].mass << std::endl;
     //create all windows
     HWND simulationWindow_handle;
     HWND controlWindow_handle;
@@ -170,21 +147,15 @@ void Simulation_Init(void)
     int selected_preset = get_presets_selection();
     
 	//create all objects
-    for (unsigned int iterator = 0; iterator < presetVector[selected_preset].number_of_objects; iterator++)
+    for (unsigned int iterator = 0; iterator < presets[selected_preset].number_of_objects; iterator++)
     {
-        // double mass = presetVector[selected_preset].objects[iterator].mass;
-        // double radius = presetVector[selected_preset].objects[iterator].radius;
-        // double start_position_x = presetVector[selected_preset].objects[iterator].start_position_x;
-        // double start_position_y = presetVector[selected_preset].objects[iterator].start_position_y;
-        // double start_velocity_x = presetVector[selected_preset].objects[iterator].start_velocity_x;
-        // double start_velocity_y = presetVector[selected_preset].objects[iterator].start_velocity_y;
-        unsigned int color = getRandomColor();
-        double mass = preset0.objects[iterator].mass;
-        double radius = preset0.objects[iterator].radius;
-        double start_position_x = preset0.objects[iterator].start_position_x;
-        double start_position_y = preset0.objects[iterator].start_position_y;
-        double start_velocity_x = preset0.objects[iterator].start_velocity_x;
-        double start_velocity_y = preset0.objects[iterator].start_velocity_y;
+        double mass             = presets[selected_preset].objects[iterator].mass;
+        double radius           = presets[selected_preset].objects[iterator].radius;
+        double start_position_x = presets[selected_preset].objects[iterator].start_position_x;
+        double start_position_y = presets[selected_preset].objects[iterator].start_position_y;
+        double start_velocity_x = presets[selected_preset].objects[iterator].start_velocity_x;
+        double start_velocity_y = presets[selected_preset].objects[iterator].start_velocity_y;
+        unsigned int color      = getRandomColor();
 
         std::cout << "iter: " << iterator << std::endl;
         std::cout << "mass: " << mass << std::endl;
