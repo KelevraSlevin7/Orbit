@@ -16,7 +16,7 @@ LRESULT CALLBACK                controlWindow_callback          (HWND hwnd, UINT
 
         void                    addObjectListItem               (unsigned int i_number, double d_mass, double d_radius, double d_position_x, double d_position_y);
         void                    removeObjectListItem            (int index);
-        void                    removeAllObjectListItems        (void);
+        void                    clearObjectList                 (void);
         void                    updateCalculationTimeText       (long long int calculationDuration);
 
         bool                    get_simulationWindow_status     (void);
@@ -27,6 +27,5 @@ LRESULT CALLBACK                controlWindow_callback          (HWND hwnd, UINT
         bool                    is_resetButton_triggered        (void);
         int                     get_presets_selection           (void);
         bool                    is_loadPresetButton_triggered   (void);
-
 
 #endif /*WINDOWHANDLING_HPP*/

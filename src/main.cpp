@@ -119,6 +119,9 @@ void Simulation_Init(void)
     //delete vector contents
     orbitalObjectVector.clear();
 
+    //empty Object List
+    clearObjectList();
+
     //get currently selected preset
     int selected_preset = get_presets_selection();
     

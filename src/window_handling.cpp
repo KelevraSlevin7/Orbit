@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <iomanip>
 #include <chrono>
 #include <vector>
 #include "config.hpp"
@@ -40,9 +41,10 @@ HWND    createButton            (HWND parentWindowHandle, const char *name, int 
 HWND    createComboBox          (HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** item_names, int number_of_columns);
 HWND    createListView          (HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** column_names, int number_of_columns);
 void    createListViewColumn    (HWND listviewHandle, int iCol, const char *text, int width);
-void    addListViewItem         (HWND listviewHandle, const char ** itemValues, int number_of_columns, int &item_counter);
+void    addListViewItem         (HWND listviewHandle, std::vector<char*> &itemValues, int number_of_columns, int &item_counter);
 HWND    createTextField         (HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height);
-const char * convertDoubleToChar(double input);
+char *  convertIntToChar        (int input);
+char *  convertDoubleToChar     (double input);
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------function declarations---------------------------------------------------------------------------
@@ -339,7 +341,8 @@ void createListViewColumn(HWND listviewHandle, int iCol, const char *text, int w
 	ListView_InsertColumn(listviewHandle, iCol, &lvc);
 }
 
-void addListViewItem(HWND listviewHandle, const char ** itemValues, int number_of_columns, int &item_counter)
+//general function to add ListView Item
+void addListViewItem(HWND listviewHandle, std::vector<char*> &itemValues, int number_of_columns, int &item_counter)
 {
     LVITEM lvi = {0};
     lvi.mask = LVIF_TEXT;
@@ -359,85 +362,41 @@ void removeListViewItem(HWND listviewHandle, int index, int &item_counter)
     item_counter--;
 }
 
+//special function to add Item to Object ListView
 void addObjectListItem(unsigned int i_number, double d_mass, double d_radius, double d_position_x, double d_position_y)
 {
-    const char* c_number = std::to_string(i_number).c_str();
-    
-    std::stringstream s_mass;
-    s_mass << d_mass;
-    const char* c_mass = s_mass.str().c_str();
+    char* c_number      = convertIntToChar(i_number);
+    char* c_mass        = convertDoubleToChar(d_mass);
+    char* c_radius      = convertDoubleToChar(d_radius);
+    char* c_position_x  = convertDoubleToChar(d_position_x);
+    char* c_position_y  = convertDoubleToChar(d_position_y);
 
-    std::stringstream s_radius;
-    s_radius << d_radius;
-    const char* c_radius = s_radius.str().c_str();
+    std::vector<char*> bufferVector {c_number, c_mass, c_radius, c_position_x, c_position_y};
+    ObjectListItemVector.push_back(bufferVector);
 
-    std::stringstream s_position_x;
-    s_position_x << d_position_x;
-    const char* c_position_x = s_position_x.str().c_str();
-
-    std::stringstream s_position_y;
-    s_position_y << d_position_y;
-    const char* c_position_y = s_position_y.str().c_str();
-
-    // const char* objectListItem[NUMBER_OF_OBJECTLIST_COLUMNS] {
-    //     c_number,
-    //     c_mass,
-    //     c_radius,
-    //     c_position_x,
-    //     c_position_y
-    // };
-
-
-    std::vector<std::string> item {"1", "2", "3", "4", "5"};
-    ObjectListItemVector.push_back(item);
-
-    for (int i = 0; i < ObjectListItemVector.size(); i++)
-    {
-        for (int k = 0; k < NUMBER_OF_OBJECTLIST_COLUMNS; k++)
-        {
-            std::cout << k << ": " << ObjectListItemVector[i].objectListItem[k] << std::endl;
-        }
-    }
-    std::cout << std::endl;
-    int newestElemnt = ObjectListItemVector[0].size() - 1;
-    addListViewItem(hwndListView_Objects, ObjectListItemVector[newestElemnt], NUMBER_OF_OBJECTLIST_COLUMNS, objectList_item_counter);
-
-    // if (i_number == 0)
-    // {
-    //     const char* objectListItem[NUMBER_OF_OBJECTLIST_COLUMNS] = 
-    //     {
-    //         "c_number0",
-    //         "c_mass0",
-    //         "c_radius0",
-    //         "c_position_x0",
-    //         "c_position_y0"
-    //     };
-    //     addListViewItem(hwndListView_Objects, objectListItem, NUMBER_OF_OBJECTLIST_COLUMNS, objectList_item_counter);
-    // }
-    // else if (i_number == 1)
-    // {
-    //     const char* objectListItem[NUMBER_OF_OBJECTLIST_COLUMNS] = 
-    //     {
-    //         "c_number1",
-    //         "c_mass1",
-    //         "c_radius1",
-    //         "c_position_x1",
-    //         "c_position_y1"
-    //     };
-    //     addListViewItem(hwndListView_Objects, objectListItem, NUMBER_OF_OBJECTLIST_COLUMNS, objectList_item_counter);
-    // }
-    
-
-    // std::cout << i_number << std::endl;
-    // ListView_GetItemText(hwndListView_Objects, objectList_item_counter, 1);
+    addListViewItem(hwndListView_Objects, ObjectListItemVector.back(), ObjectListItemVector.back().size(), objectList_item_counter);
 }
 
-const char * convertDoubleToChar(double input)
+char * convertDoubleToChar(double input)
 {
-    std::stringstream s_input;
-    s_input << input;
-    const char* c_input = s_input.str().c_str();
-    return c_input;
+    std::string input_str = std::to_string(input);
+    //remove trailing zeroes
+    input_str.erase ( input_str.find_last_not_of('0') + 1, std::string::npos );
+    input_str.erase ( input_str.find_last_not_of('.') + 1, std::string::npos );
+
+    const std::string::size_type size = input_str.size();
+    char *output = new char[size + 1];
+    memcpy(output, input_str.c_str(), size + 1);
+    return output;
+}
+
+char * convertIntToChar(int input)
+{
+    std::string input_str = std::to_string(input);
+    const std::string::size_type size = input_str.size();
+    char *output = new char[size + 1];
+    memcpy(output, input_str.c_str(), size + 1);
+    return output;
 }
 
 void removeObjectListItem(int index)
@@ -445,9 +404,13 @@ void removeObjectListItem(int index)
     removeListViewItem(hwndListView_Objects, index, objectList_item_counter);
 }
 
-void removeAllObjectListItems(void)
+void clearObjectList(void)
 {
-    for (int i = 0; i < objectList_item_counter; i++)
+    ObjectListItemVector.clear();
+
+    //necessary so that the for loop is not affected by a changed counter
+    int rowsToDelete = objectList_item_counter;
+    for (int i = 0; i < rowsToDelete; i++)
     {
         removeListViewItem(hwndListView_Objects, 0, objectList_item_counter);
     }
