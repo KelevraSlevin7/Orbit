@@ -124,7 +124,7 @@ class CDraw
                 drawPixel(y + x_centre, -x + y_centre, color);
             }
 
-            static int P = 1 - radius;
+            int P = 1 - radius;
 
             while (x > y)
             {
