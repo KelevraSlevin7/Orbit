@@ -383,8 +383,8 @@ char * convertDoubleToChar(double input)
 {
     std::string input_str = std::to_string(input);
     //remove trailing zeroes
-    input_str.erase ( input_str.find_last_not_of('0') + 1, std::string::npos );
-    input_str.erase ( input_str.find_last_not_of('.') + 1, std::string::npos );
+    input_str.erase (input_str.find_last_not_of('0') + 1, std::string::npos);
+    input_str.erase (input_str.find_last_not_of('.') + 1, std::string::npos);
 
     const std::string::size_type size = input_str.size();
     char *output = new char[size + 1];
