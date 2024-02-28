@@ -36,7 +36,7 @@
 
 //"load preset" button
 //size
-    #define BUTTON_LOADPRESET_WIDTH     170
+    #define BUTTON_LOADPRESET_WIDTH     180
     #define BUTTON_LOADPRESET_HEIGHT    40
 //pos
     #define BUTTON_LOADPRESET_POSX      (BUTTON_START_POSX + BUTTON_START_WIDTH + 30)
