@@ -20,7 +20,7 @@
 extern const char * presetNames[NUMBER_OF_PRESETS];
 
 //list of column names for the listView
-#define NUMBER_OF_OBJECTLIST_COLUMNS 5
+#define NUMBER_OF_OBJECTLIST_COLUMNS 7
 
 //button sizes
 #define BUTTON_WIDTH    150

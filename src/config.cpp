@@ -47,7 +47,9 @@ const char* objectListColumsText[NUMBER_OF_OBJECTLIST_COLUMNS]
     "Mass",
     "Radius",
     "Start Pos X",
-    "Start Pos Y"
+    "Start Pos Y",
+    "Start Vel X",
+    "Start Vel Y"
 };
 
 const int objectListColumsSize[NUMBER_OF_OBJECTLIST_COLUMNS]
@@ -55,6 +57,8 @@ const int objectListColumsSize[NUMBER_OF_OBJECTLIST_COLUMNS]
     60,
     50,
     50,
+    80,
+    80,
     80,
     80
 };

@@ -363,15 +363,17 @@ void removeListViewItem(HWND listviewHandle, int index, int &item_counter)
 }
 
 //special function to add Item to Object ListView
-void addObjectListItem(unsigned int i_number, double d_mass, double d_radius, double d_position_x, double d_position_y)
+void addObjectListItem(unsigned int i_number, double d_mass, double d_radius, double d_position_x, double d_position_y, double d_vel_x, double d_vel_y)
 {
     char* c_number      = convertIntToChar(i_number);
     char* c_mass        = convertDoubleToChar(d_mass);
     char* c_radius      = convertDoubleToChar(d_radius);
     char* c_position_x  = convertDoubleToChar(d_position_x);
     char* c_position_y  = convertDoubleToChar(d_position_y);
+    char* c_vel_x       = convertDoubleToChar(d_vel_x);
+    char* c_vel_y       = convertDoubleToChar(d_vel_y);
 
-    std::vector<char*> bufferVector {c_number, c_mass, c_radius, c_position_x, c_position_y};
+    std::vector<char*> bufferVector {c_number, c_mass, c_radius, c_position_x, c_position_y, c_vel_x, c_vel_y};
     ObjectListItemVector.push_back(bufferVector);
 
     addListViewItem(hwndListView_Objects, ObjectListItemVector.back(), ObjectListItemVector.back().size(), objectList_item_counter);

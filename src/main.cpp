@@ -158,7 +158,7 @@ void Simulation_Init(void)
 		orbitalObjectVector.push_back(orbitalObject);
 
         //add object data to ListView item
-        addObjectListItem(iterator, mass, radius, start_position_x, start_position_y);
+        addObjectListItem(iterator, mass, radius, start_position_x, start_position_y, start_velocity_x, start_velocity_y);
     }
 }
 
