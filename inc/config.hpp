@@ -13,10 +13,12 @@
 #define INIT_SIMULATION_POS_Y   100
 
 //number of presets and the correpsonding number of objects per preset
-#define NUMBER_OF_PRESETS   3
+#define NUMBER_OF_PRESETS   5
 #define PRESET_0_NUMBER_OF_OBJECTS  2
 #define PRESET_1_NUMBER_OF_OBJECTS  3
 #define PRESET_2_NUMBER_OF_OBJECTS  5
+#define PRESET_3_NUMBER_OF_OBJECTS  5
+#define PRESET_4_NUMBER_OF_OBJECTS  3
 extern const char * presetNames[NUMBER_OF_PRESETS];
 
 //list of column names for the listView
