@@ -12,6 +12,60 @@
 #define INIT_SIMULATION_POS_X   100
 #define INIT_SIMULATION_POS_Y   100
 
+//initial control window size
+#define INIT_CONTROL_WIDTH   750
+#define INIT_CONTROL_HEIGHT  300
+#define INIT_CONTROL_POS_X   (INIT_SIMULATION_POS_X + INIT_SIMULATION_WIDTH + 100)
+#define INIT_CONTROL_POS_Y   (INIT_SIMULATION_POS_Y)
+
+//"start stop" button
+//size
+    #define BUTTON_START_WIDTH          150
+    #define BUTTON_START_HEIGHT         70
+//pos
+    #define BUTTON_START_POSX           20
+    #define BUTTON_START_POSY           20
+
+//"reset" buton
+//size
+    #define BUTTON_RESET_WIDTH          150
+    #define BUTTON_RESET_HEIGHT         70
+//pos
+    #define BUTTON_RESET_POSX           (BUTTON_START_POSX)
+    #define BUTTON_RESET_POSY           (BUTTON_START_POSX + BUTTON_START_HEIGHT + 20)
+
+//"load preset" button
+//size
+    #define BUTTON_LOADPRESET_WIDTH     170
+    #define BUTTON_LOADPRESET_HEIGHT    40
+//pos
+    #define BUTTON_LOADPRESET_POSX      (BUTTON_START_POSX + BUTTON_START_WIDTH + 30)
+    #define BUTTON_LOADPRESET_POSY      (BUTTON_START_POSY)
+
+//"preset" comboBox
+//size
+    #define COMBOBOX_PRESETS_WIDTH      170
+    #define COMBOBOX_PRESETS_HEIGHT     500     //height needs to be this big, so the drop down menu can be seen
+//pos
+    #define COMBOBOX_PRESETS_POSX       (BUTTON_LOADPRESET_POSX)
+    #define COMBOBOX_PRESETS_POSY       (BUTTON_LOADPRESET_POSY + BUTTON_LOADPRESET_HEIGHT + 10)
+
+//"object list" listView
+//size
+    #define LISTVIEW_OBJECTLIST_WIDTH   480
+    #define LISTVIEW_OBJECTLIST_HEIGHT  150
+//pos
+    #define LISTVIEW_OBJECTLIST_POSX    (COMBOBOX_PRESETS_POSX)
+    #define LISTVIEW_OBJECTLIST_POSY    (COMBOBOX_PRESETS_POSY + 40)
+
+//"calculation time" text
+//size
+    #define TEXT_CALCULATIONTIME_WIDTH  160
+    #define TEXT_CALCULATIONTIME_HEIGHT 20
+//pos
+    #define TEXT_CALCULATIONTIME_POSX   LISTVIEW_OBJECTLIST_POSX + LISTVIEW_OBJECTLIST_WIDTH - TEXT_CALCULATIONTIME_WIDTH
+    #define TEXT_CALCULATIONTIME_POSY   (BUTTON_START_POSY)
+
 //number of presets and the correpsonding number of objects per preset
 #define NUMBER_OF_PRESETS   5
 #define PRESET_0_NUMBER_OF_OBJECTS  2
@@ -23,11 +77,6 @@ extern const char * presetNames[NUMBER_OF_PRESETS];
 
 //list of column names for the listView
 #define NUMBER_OF_OBJECTLIST_COLUMNS 7
-
-//button sizes
-#define BUTTON_WIDTH    150
-#define BUTTON_HEIGHT   70
-#define BUTTON_SPACING  20
 
 //length of object trail
 #define TRAIL_LENGTH    100

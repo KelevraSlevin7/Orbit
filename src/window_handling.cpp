@@ -220,9 +220,9 @@ void createWindows(HINSTANCE hInstance, int nShowCmd, HWND &simulationWindow_han
 		0,                                      //Optional window styles
 		controlWindow_class.lpszClassName,      //Window class
 		"Orbital Object Control!",              //Window text
-		WS_SYSMENU | WS_VISIBLE,	            //Window style
-		x_pos + width + 100, y_pos,             //position
-		800, 800,                               //size
+		WS_SYSMENU | WS_VISIBLE,	            //Window style                 
+        INIT_CONTROL_POS_X, INIT_CONTROL_POS_Y, //position
+        INIT_CONTROL_WIDTH, INIT_CONTROL_HEIGHT,//size
 		NULL,                                   //Parent window    
 		NULL,                                   //Menu
 		hInstance,                              //Instance handle
@@ -239,20 +239,20 @@ void createWindows(HINSTANCE hInstance, int nShowCmd, HWND &simulationWindow_han
 void fillControlWindow(HWND parentWindowHandle)
 {
     //create button for starting and stopping the simulation
-    hwndButton_StartStop = createButton(parentWindowHandle, "Stop", BUTTON_SPACING, BUTTON_SPACING, BUTTON_WIDTH, BUTTON_HEIGHT, (HMENU)IDC_BUTTON_STARTSTOP);
+    hwndButton_StartStop = createButton(parentWindowHandle, "Stop", BUTTON_START_POSX, BUTTON_START_POSY, BUTTON_START_WIDTH, BUTTON_START_HEIGHT, (HMENU)IDC_BUTTON_STARTSTOP);
 
     //create button to reset the simulation to the initial state
-    hwndButton_Reset = createButton(parentWindowHandle, "Reset", BUTTON_SPACING, 2 * BUTTON_SPACING + 1 * BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT, (HMENU)IDC_BUTTON_RESET);
+    hwndButton_Reset = createButton(parentWindowHandle, "Reset", BUTTON_RESET_POSX, BUTTON_RESET_POSY, BUTTON_RESET_WIDTH, BUTTON_RESET_HEIGHT, (HMENU)IDC_BUTTON_RESET);
 
     //create button and comboBox for presets
-    hwndButton_LoadPreset = createButton(parentWindowHandle, "Load Preset", 200, 20, 150, 40, (HMENU)IDC_BUTTON_LOADPRESET);
-    hwndComboBox_Presets = createComboBox(parentWindowHandle, 200, 70, 150, 500, (HMENU)IDC_COMBOBOX_PRESETS, presetNames, NUMBER_OF_PRESETS); //height needs to be big, so the drop down menu can be seen
+    hwndButton_LoadPreset = createButton(parentWindowHandle, "Load Preset", BUTTON_LOADPRESET_POSX, BUTTON_LOADPRESET_POSY, BUTTON_LOADPRESET_WIDTH, BUTTON_LOADPRESET_HEIGHT, (HMENU)IDC_BUTTON_LOADPRESET);
+    hwndComboBox_Presets = createComboBox(parentWindowHandle, COMBOBOX_PRESETS_POSX, COMBOBOX_PRESETS_POSY, COMBOBOX_PRESETS_WIDTH, COMBOBOX_PRESETS_HEIGHT, (HMENU)IDC_COMBOBOX_PRESETS, presetNames, NUMBER_OF_PRESETS);
     
     // create list of active objects
-    hwndListView_Objects = createListView(parentWindowHandle, 200, 200, 500, 200, (HMENU)IDC_LISTVIEW_OBJECTS, objectListColumsText, objectListColumsSize, NUMBER_OF_OBJECTLIST_COLUMNS);
+    hwndListView_Objects = createListView(parentWindowHandle, LISTVIEW_OBJECTLIST_POSX, LISTVIEW_OBJECTLIST_POSY, LISTVIEW_OBJECTLIST_WIDTH, LISTVIEW_OBJECTLIST_HEIGHT, (HMENU)IDC_LISTVIEW_OBJECTS, objectListColumsText, objectListColumsSize, NUMBER_OF_OBJECTLIST_COLUMNS);
 
     //create text box to show calculation time of last simulation loop
-    hwndText_CalculationTime = createTextField(parentWindowHandle, "0", 500, 20, 160, 20);
+    hwndText_CalculationTime = createTextField(parentWindowHandle, "0", TEXT_CALCULATIONTIME_POSX, TEXT_CALCULATIONTIME_POSY, TEXT_CALCULATIONTIME_WIDTH, TEXT_CALCULATIONTIME_HEIGHT);
 }
 
 HWND createButton(HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height, HMENU IDC)
