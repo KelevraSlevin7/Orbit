@@ -1,3 +1,9 @@
+#ignore all vscode stuff
 .vscode/
-build/
-*.
+
+#exlude everything in build folder except the .exe
+!build/
+build/*
+!build/mingw64/
+build/mingw64/*
+!build/mingw64/orbit_simulation.exe
