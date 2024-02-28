@@ -15,16 +15,16 @@ double mid_y = static_cast<double>(INIT_SIMULATION_HEIGHT / 2);
 //"2 Body stable orbit"
 const objectStruct preset0_objects[PRESET_0_NUMBER_OF_OBJECTS] {
     //  mass       radius       start_pos_x     start_pox_y     start_vel_x     start_vel_y
-    {   10000.0,   30.0,        mid_x,          mid_y,          0.0,            0.0},
-    {   1.0,       10.0,        mid_x + 200,    mid_y,          0.0,            0.0}
+    {   10000.0,   40.0,        mid_x,          mid_y,          0.0,            0.0},
+    {   1.0,       15.0,        mid_x + 200,    mid_y,          0.0,            0.0}
 };
 
 //"3 Body stable orbit"
 const objectStruct preset1_objects[PRESET_1_NUMBER_OF_OBJECTS] {
     //  mass        radius      start_pos_x     start_pox_y     start_vel_x     start_vel_y
-    {   200.0,      10.0,       mid_x,          mid_y,          0.0,            0.0},
-    {   20.0,       5.0,        mid_x - 80.0,   mid_y,          0.0,           -1.9},
-    {   20.0,       5.0,        mid_x + 80.0,   mid_y,          0.0,            1.9}
+    {   200.0,      25.0,       mid_x,          mid_y,          0.0,            0.0},
+    {   20.0,       10.0,       mid_x - 80.0,   mid_y,          0.0,           -1.9},
+    {   20.0,       10.0,       mid_x + 80.0,   mid_y,          0.0,            1.9}
 };
 
 //"Stable Orbit symmetric"
