@@ -44,7 +44,7 @@
 
 //"preset" comboBox
 //size
-    #define COMBOBOX_PRESETS_WIDTH      170
+    #define COMBOBOX_PRESETS_WIDTH      (BUTTON_LOADPRESET_WIDTH)
     #define COMBOBOX_PRESETS_HEIGHT     500     //height needs to be this big, so the drop down menu can be seen
 //pos
     #define COMBOBOX_PRESETS_POSX       (BUTTON_LOADPRESET_POSX)
