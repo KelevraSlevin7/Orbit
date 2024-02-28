@@ -39,7 +39,7 @@ std::vector< std::vector<char*> >ObjectListItemVector;
 void    fillControlWindow       (HWND parentWindowHandle);
 HWND    createButton            (HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height, HMENU IDC);
 HWND    createComboBox          (HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** item_names, int number_of_columns);
-HWND    createListView          (HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** column_names, int number_of_columns);
+HWND    createListView          (HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** column_names, const int *column_sizes, int number_of_columns);
 void    createListViewColumn    (HWND listviewHandle, int iCol, const char *text, int width);
 void    addListViewItem         (HWND listviewHandle, std::vector<char*> &itemValues, int number_of_columns, int &item_counter);
 HWND    createTextField         (HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height);
@@ -249,7 +249,7 @@ void fillControlWindow(HWND parentWindowHandle)
     hwndComboBox_Presets = createComboBox(parentWindowHandle, 200, 70, 150, 500, (HMENU)IDC_COMBOBOX_PRESETS, presetNames, NUMBER_OF_PRESETS); //height needs to be big, so the drop down menu can be seen
     
     // create list of active objects
-    hwndListView_Objects = createListView(parentWindowHandle, 200, 200, 500, 200, (HMENU)IDC_LISTVIEW_OBJECTS, objectListColums, NUMBER_OF_OBJECTLIST_COLUMNS);
+    hwndListView_Objects = createListView(parentWindowHandle, 200, 200, 500, 200, (HMENU)IDC_LISTVIEW_OBJECTS, objectListColumsText, objectListColumsSize, NUMBER_OF_OBJECTLIST_COLUMNS);
 
     //create text box to show calculation time of last simulation loop
     hwndText_CalculationTime = createTextField(parentWindowHandle, "0", 500, 20, 160, 20);
@@ -301,7 +301,7 @@ HWND createComboBox(HWND parentWindowHandle, int position_x, int position_y, int
     return comboBox_handle;
 }
 
-HWND createListView(HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** column_names, int number_of_columns)
+HWND createListView(HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** column_names, const int *column_sizes, int number_of_columns)
 {
     HWND listView_handle = CreateWindowEx( 
         0,                                                      //extended window styles
@@ -324,7 +324,7 @@ HWND createListView(HWND parentWindowHandle, int position_x, int position_y, int
     //create columns
     for (int i = 0; i < number_of_columns; i++)
     {
-        createListViewColumn(listView_handle, i, column_names[i], 100);
+        createListViewColumn(listView_handle, i, column_names[i], column_sizes[i]);
     }
 
     return listView_handle;

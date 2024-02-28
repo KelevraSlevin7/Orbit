@@ -16,7 +16,7 @@
 #define NUMBER_OF_PRESETS   3
 #define PRESET_0_NUMBER_OF_OBJECTS  2
 #define PRESET_1_NUMBER_OF_OBJECTS  3
-#define PRESET_2_NUMBER_OF_OBJECTS  1
+#define PRESET_2_NUMBER_OF_OBJECTS  5
 extern const char * presetNames[NUMBER_OF_PRESETS];
 
 //list of column names for the listView
@@ -56,8 +56,8 @@ struct presetStruct {
 
 extern const presetStruct presets[NUMBER_OF_PRESETS];
 
-extern const char* objectListColums[NUMBER_OF_OBJECTLIST_COLUMNS];
-
+extern const char* objectListColumsText[NUMBER_OF_OBJECTLIST_COLUMNS];
+extern const int objectListColumsSize[NUMBER_OF_OBJECTLIST_COLUMNS];
 
 
 #endif /*CONFIG_HPP*/
