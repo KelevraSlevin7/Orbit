@@ -37,7 +37,7 @@ void            Window_Loop                         (void);
 void            drawObject                          (unsigned int activeBoid);
 void            drawTrail                           (unsigned int activeBoid);
 void            calculateStableOrbit_startVelocity  (double bigObject_mass, double bigObject_posX, double bigObject_posY, double smallObject_posX, double smallObject_posY, double &smallObject_velX, double &smallObject_velY);
-unsigned int    getRandomColor                      (void);
+unsigned int    getRandomColor                      (unsigned int iteratio);
 void            updateWindowSize                    (int width, int height);
 void            waitUntilLoopEnd                    (std::chrono::time_point<std::chrono::high_resolution_clock> loop_begin);
 
@@ -134,7 +134,7 @@ void Simulation_Init(void)
         double start_position_y = presets[selected_preset].objects[iterator].start_position_y;
         double start_velocity_x = presets[selected_preset].objects[iterator].start_velocity_x;
         double start_velocity_y = presets[selected_preset].objects[iterator].start_velocity_y;
-        unsigned int color      = getRandomColor();
+        unsigned int color      = getRandomColor(iterator);
 
         //check if stable orbit needs to be calculated and ignore the first object
         if ((presets[selected_preset].calculate_stable == true) &&
@@ -247,10 +247,10 @@ void calculateStableOrbit_startVelocity(double bigObject_mass, double bigObject_
     smallObject_velY = sin(sqrt(bigObject_mass / (distance*distance*distance))) * distance;
 }
 
-unsigned int getRandomColor(void)
+unsigned int getRandomColor(unsigned int iteration)
 {
-    static CColor color;
-    color.hsv.h = (static_cast<int>(color.hsv.h) % 360) + 50; //hue (color)
+    CColor color;
+    color.hsv.h = (static_cast<int>(color.hsv.h + (50 * iteration)) % 360); //hue (color)
     color.hsv.s = 1.0;                          //saturation
     color.hsv.v = 1.0;                          //value
     color.rgb = color.hsv2rgb(color.hsv);
