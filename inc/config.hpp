@@ -58,6 +58,22 @@
     #define LISTVIEW_OBJECTLIST_POSX    (COMBOBOX_PRESETS_POSX)
     #define LISTVIEW_OBJECTLIST_POSY    (COMBOBOX_PRESETS_POSY + 40)
 
+//"add" button
+//size
+    #define BUTTON_ADD_WIDTH            70
+    #define BUTTON_ADD_HEIGHT           20
+//pos
+    #define BUTTON_ADD_POSX             (COMBOBOX_PRESETS_POSX + COMBOBOX_PRESETS_WIDTH + 50)
+    #define BUTTON_ADD_POSY             (COMBOBOX_PRESETS_POSY)
+
+//"remove" button
+//size
+    #define BUTTON_REMOVE_WIDTH         70
+    #define BUTTON_REMOVE_HEIGHT        20
+//pos
+    #define BUTTON_REMOVE_POSX          (BUTTON_ADD_POSX + BUTTON_ADD_WIDTH + 50)
+    #define BUTTON_REMOVE_POSY          (COMBOBOX_PRESETS_POSY)
+
 //"calculation time" text
 //size
     #define TEXT_CALCULATIONTIME_WIDTH  160

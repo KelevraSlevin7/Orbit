@@ -4,11 +4,14 @@
 #include <windows.h>
 #include <CommCtrl.h>
 
-enum StartStopButton_State
-{
-        kStart = 0U,
-        kStop = 1U
-};
+#define IDC_BUTTON_STARTSTOP    100
+#define IDC_BUTTON_RESET        101
+#define IDC_BUTTON_LOADPRESET   102
+#define IDC_COMBOBOX_PRESETS    103
+#define IDC_LISTVIEW_OBJECTS    104
+#define IDC_BUTTON_ADD          105
+#define IDC_BUTTON_REMOVE       106
+#define IDC_TEXT_CALCTIME       107
 
 LRESULT CALLBACK                simulationWindow_callback       (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK                controlWindow_callback          (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -23,9 +26,8 @@ LRESULT CALLBACK                controlWindow_callback          (HWND hwnd, UINT
         bool                    get_controlWindow_status        (void);
         int                     get_simulationWindow_width      (void);
         int                     get_simulationWindow_height     (void);
-        StartStopButton_State   get_startstopButton_state       (void);
-        bool                    is_resetButton_triggered        (void);
+        void writeStartStopButtonText(const char* text);
         int                     get_presets_selection           (void);
-        bool                    is_loadPresetButton_triggered   (void);
+        bool                    isButtonTriggered               (int buttonId);
 
 #endif /*WINDOWHANDLING_HPP*/

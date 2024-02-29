@@ -23,6 +23,14 @@ struct Render_State{
 Render_State render_state;
 
 boolean running = true;
+
+enum simulation_State
+{
+        kStart  = 0U,
+        kStop   = 1U
+};
+simulation_State simulationStatus {kStart};
+
 //create Object Vector
 std::vector<COrbitalObject> orbitalObjectVector;
 //create Object to draw
@@ -69,15 +77,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         Window_Loop();
         
         //check if simulation needs to run
-        if (get_startstopButton_state() == kStart)
+        if (simulationStatus == kStart)
         {
             //Simulate Orbital Objects
             Simulation_Loop(simulation_DC);
         }
 
+        // int selected_item;
+        // selected_item = 
+        // std::cout << selected_item << std::endl;
+
         //check if reset needs to be performed
-        if ((is_resetButton_triggered() == true) ||
-            (is_loadPresetButton_triggered() == true))
+        if ((isButtonTriggered(IDC_BUTTON_RESET) == true) ||
+            (isButtonTriggered(IDC_BUTTON_LOADPRESET) == true))
         {
             Simulation_Init();
             //draw one frame so the reset is visible if simulation is stopped
@@ -98,10 +110,25 @@ void Window_Loop(void)
     }
 
     //check if the size of the simulation window changed
-    if ((get_simulationWindow_width() != render_state.width) ||
+    if ((get_simulationWindow_width()  != render_state.width) ||
         (get_simulationWindow_height() != render_state.height))
     {
         updateWindowSize(get_simulationWindow_width(), get_simulationWindow_height());
+    }
+
+    //check if start stop button was pressed and change the simulation state accordingly
+    if (isButtonTriggered(IDC_BUTTON_STARTSTOP) == true)
+    {
+        if (simulationStatus == kStart)
+        {
+            simulationStatus = kStop;
+            writeStartStopButtonText("Start");
+        }
+        else
+        {
+            simulationStatus = kStart;
+            writeStartStopButtonText("Stop");
+        }
     }
 
     //stop program if any window is closed

@@ -7,16 +7,8 @@
 #include "config.hpp"
 #include "window_handling.hpp"
 
-HWND hwndButton_StartStop;
-#define IDC_BUTTON_STARTSTOP    100
-HWND hwndButton_Reset;
-#define IDC_BUTTON_RESET        101
-HWND hwndListView_Objects;
-#define IDC_COMBOBOX_PRESETS    102
 HWND hwndComboBox_Presets;
-#define IDC_BUTTON_LOADPRESET   103
-HWND hwndButton_LoadPreset;
-#define IDC_LISTVIEW_OBJECTS    104
+HWND hwndListView_Objects;
 HWND hwndText_CalculationTime;
 
 bool simulationWindow_active{true};
@@ -24,20 +16,24 @@ int simulationWindow_width{0};
 int simulationWindow_height{0};
 bool controlWindow_active{true};
 
-StartStopButton_State startstopButton_state{kStart};
-bool resetButton_trigger{false};
 int presets_selected_index{0};
-bool loadPresetButton_trigger{false};
+
+#define BUTTON_START_ID 110
+struct buttonStruct {
+    int     id;
+    HWND    handle;
+    bool    triggered;
+};
+std::vector<buttonStruct> buttonVector;
 
 int objectList_item_counter{0};
-
 std::vector< std::vector<char*> >ObjectListItemVector;
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------static functions------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------------------------
 void    fillControlWindow       (HWND parentWindowHandle);
-HWND    createButton            (HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height, HMENU IDC);
+HWND    createButton            (HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height, int IDC);
 HWND    createComboBox          (HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** item_names, int number_of_columns);
 HWND    createListView          (HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** column_names, const int *column_sizes, int number_of_columns);
 void    createListViewColumn    (HWND listviewHandle, int iCol, const char *text, int width);
@@ -45,6 +41,7 @@ void    addListViewItem         (HWND listviewHandle, std::vector<char*> &itemVa
 HWND    createTextField         (HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height);
 char *  convertIntToChar        (int input);
 char *  convertDoubleToChar     (double input);
+HWND    getButtonHandle         (int buttonId);
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------function declarations---------------------------------------------------------------------------
@@ -100,30 +97,13 @@ LRESULT CALLBACK controlWindow_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 
         case WM_COMMAND:
         {
-            //start stop button was pressed
-            if (LOWORD(wParam) == IDC_BUTTON_STARTSTOP)
+            //check if any button is triggered
+            for (int i = 0; i < buttonVector.size(); ++i)
             {
-                //toggle Start Stop button when pressed
-                if (startstopButton_state == kStop)
+                if (LOWORD(wParam) == buttonVector[i].id)
                 {
-                    startstopButton_state = kStart;
-                    SendMessage(hwndButton_StartStop, WM_SETTEXT, 0, (LPARAM)"Stop");
+                    buttonVector[i].triggered = true;
                 }
-                else
-                {
-                    startstopButton_state = kStop;
-                    SendMessage(hwndButton_StartStop, WM_SETTEXT, 0, (LPARAM)"Start");
-                }
-            }
-            //reset button was pressed
-            else if (LOWORD(wParam) == IDC_BUTTON_RESET)
-            {
-                resetButton_trigger = true;
-            }
-            //loadPreset button was pressed
-            else if (LOWORD(wParam) == IDC_BUTTON_LOADPRESET)
-            {
-                loadPresetButton_trigger = true;
             }
 
             //comboBox item was selected
@@ -239,25 +219,27 @@ void createWindows(HINSTANCE hInstance, int nShowCmd, HWND &simulationWindow_han
 void fillControlWindow(HWND parentWindowHandle)
 {
     //create button for starting and stopping the simulation
-    hwndButton_StartStop = createButton(parentWindowHandle, "Stop", BUTTON_START_POSX, BUTTON_START_POSY, BUTTON_START_WIDTH, BUTTON_START_HEIGHT, (HMENU)IDC_BUTTON_STARTSTOP);
+    createButton(parentWindowHandle, "Stop", BUTTON_START_POSX, BUTTON_START_POSY, BUTTON_START_WIDTH, BUTTON_START_HEIGHT, IDC_BUTTON_STARTSTOP);
 
     //create button to reset the simulation to the initial state
-    hwndButton_Reset = createButton(parentWindowHandle, "Reset", BUTTON_RESET_POSX, BUTTON_RESET_POSY, BUTTON_RESET_WIDTH, BUTTON_RESET_HEIGHT, (HMENU)IDC_BUTTON_RESET);
+    createButton(parentWindowHandle, "Reset", BUTTON_RESET_POSX, BUTTON_RESET_POSY, BUTTON_RESET_WIDTH, BUTTON_RESET_HEIGHT, IDC_BUTTON_RESET);
 
     //create button and comboBox for presets
-    hwndButton_LoadPreset = createButton(parentWindowHandle, "Load Preset", BUTTON_LOADPRESET_POSX, BUTTON_LOADPRESET_POSY, BUTTON_LOADPRESET_WIDTH, BUTTON_LOADPRESET_HEIGHT, (HMENU)IDC_BUTTON_LOADPRESET);
+    createButton(parentWindowHandle, "Load Preset", BUTTON_LOADPRESET_POSX, BUTTON_LOADPRESET_POSY, BUTTON_LOADPRESET_WIDTH, BUTTON_LOADPRESET_HEIGHT, IDC_BUTTON_LOADPRESET);
     hwndComboBox_Presets = createComboBox(parentWindowHandle, COMBOBOX_PRESETS_POSX, COMBOBOX_PRESETS_POSY, COMBOBOX_PRESETS_WIDTH, COMBOBOX_PRESETS_HEIGHT, (HMENU)IDC_COMBOBOX_PRESETS, presetNames, NUMBER_OF_PRESETS);
     
     // create list of active objects
     hwndListView_Objects = createListView(parentWindowHandle, LISTVIEW_OBJECTLIST_POSX, LISTVIEW_OBJECTLIST_POSY, LISTVIEW_OBJECTLIST_WIDTH, LISTVIEW_OBJECTLIST_HEIGHT, (HMENU)IDC_LISTVIEW_OBJECTS, objectListColumsText, objectListColumsSize, NUMBER_OF_OBJECTLIST_COLUMNS);
+    createButton(parentWindowHandle, "Add", BUTTON_ADD_POSX, BUTTON_ADD_POSY, BUTTON_ADD_WIDTH, BUTTON_ADD_HEIGHT, IDC_BUTTON_ADD);
+    createButton(parentWindowHandle, "Remove", BUTTON_REMOVE_POSX, BUTTON_REMOVE_POSY, BUTTON_REMOVE_WIDTH, BUTTON_REMOVE_HEIGHT, IDC_BUTTON_REMOVE);
 
     //create text box to show calculation time of last simulation loop
     hwndText_CalculationTime = createTextField(parentWindowHandle, "0", TEXT_CALCULATIONTIME_POSX, TEXT_CALCULATIONTIME_POSY, TEXT_CALCULATIONTIME_WIDTH, TEXT_CALCULATIONTIME_HEIGHT);
 }
 
-HWND createButton(HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height, HMENU IDC)
+HWND createButton(HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height, int IDC)
 {
-    return CreateWindowEx( 
+    HWND buttonHandle = CreateWindowEx( 
         0,                                                      //extended window styles
         "BUTTON",                                               // Predefined class; Unicode assumed
         name,                                                   // window name
@@ -267,10 +249,15 @@ HWND createButton(HWND parentWindowHandle, const char *name, int position_x, int
         width,                                                  // window width
         height,                                                 // nutton height
         parentWindowHandle,                                     // parent window handle
-        IDC,                                                    // control ID
+        reinterpret_cast<HMENU>(IDC),                           // control ID
         (HINSTANCE)GetWindowLongPtr(parentWindowHandle, GWLP_HINSTANCE),  //handle to the instance
         NULL                                                    // pointer to a value (not needed)
     );
+
+    buttonStruct buttonBuffer {IDC, buttonHandle, false};
+    buttonVector.push_back(buttonBuffer);
+
+    return buttonHandle;
 }
 
 HWND createComboBox(HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** item_names, int number_of_columns)
@@ -443,6 +430,18 @@ void updateCalculationTimeText(long long int calculationDuration)
     SetWindowText(hwndText_CalculationTime, TEXT(text));
 }
 
+HWND getButtonHandle(int buttonId)
+{
+    for (int i = 0; i < buttonVector.size(); ++i)
+    {
+        if (buttonVector[i].id == buttonId)
+        {
+            return buttonVector[i].handle;
+        }
+    }
+    return NULL;
+}
+
 bool get_simulationWindow_status(void)
 {
     return simulationWindow_active;
@@ -463,16 +462,9 @@ int get_simulationWindow_height(void)
     return simulationWindow_height;
 }
 
-StartStopButton_State get_startstopButton_state(void)
+void writeStartStopButtonText(const char* text)
 {
-    return startstopButton_state;
-}
-
-bool is_resetButton_triggered(void)
-{
-    bool return_val = resetButton_trigger;
-    resetButton_trigger = false;
-    return return_val;
+    SendMessage(getButtonHandle(IDC_BUTTON_STARTSTOP), WM_SETTEXT, 0, (LPARAM)text);
 }
 
 int get_presets_selection(void)
@@ -480,11 +472,18 @@ int get_presets_selection(void)
     return presets_selected_index;
 }
 
-bool is_loadPresetButton_triggered(void)
+bool isButtonTriggered(int buttonId)
 {
-    bool return_val = loadPresetButton_trigger;
-    loadPresetButton_trigger = false;
-    return return_val;
+    bool triggered{false};
+    for (int i = 0; i < buttonVector.size(); ++i)
+    {
+        if (buttonVector[i].id == buttonId)
+        {
+            triggered = buttonVector[i].triggered;
+            buttonVector[i].triggered = false;
+        }
+    }
+    return triggered;
 }
 
 
