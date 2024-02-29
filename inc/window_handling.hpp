@@ -20,13 +20,16 @@ LRESULT CALLBACK                controlWindow_callback          (HWND hwnd, UINT
         void                    addObjectListItem               (unsigned int i_number, double d_mass, double d_radius, double d_position_x, double d_position_y, double d_vel_x, double d_vel_y);
         void                    removeObjectListItem            (int index);
         void                    clearObjectList                 (void);
+        int                     getObjectListSelectedIndex      (void);
+        void                    removeObjectListSelectedItem    (void);
+        
         void                    updateCalculationTimeText       (long long int calculationDuration);
 
         bool                    get_simulationWindow_status     (void);
         bool                    get_controlWindow_status        (void);
         int                     get_simulationWindow_width      (void);
         int                     get_simulationWindow_height     (void);
-        void writeStartStopButtonText(const char* text);
+        void                    writeStartStopButtonText        (const char* text);
         int                     get_presets_selection           (void);
         bool                    isButtonTriggered               (int buttonId);
 

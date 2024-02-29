@@ -294,7 +294,7 @@ HWND createListView(HWND parentWindowHandle, int position_x, int position_y, int
         0,                                                      //extended window styles
         WC_LISTVIEW,                                            // Predefined class; Unicode assumed
         "",                                                     // window name
-        WS_VISIBLE | WS_CHILD | WS_BORDER | LVS_REPORT | LVS_EDITLABELS | WS_EX_CLIENTEDGE | LVS_SORTASCENDING,  // window style
+        WS_VISIBLE | WS_CHILD | WS_BORDER | LVS_REPORT | LVS_EDITLABELS | WS_EX_CLIENTEDGE, // window style (no sorting)
         position_x,                                             // x position
         position_y,                                             // y position
         width,                                                  // window width
@@ -317,94 +317,6 @@ HWND createListView(HWND parentWindowHandle, int position_x, int position_y, int
     return listView_handle;
 }
 
-void createListViewColumn(HWND listviewHandle, int iCol, const char *text, int width)
-{
-    LVCOLUMN lvc;
-	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
-	lvc.fmt = LVCFMT_LEFT;
-	lvc.cx = width;
-	lvc.pszText = (LPSTR)text;
-	lvc.iSubItem = iCol;
-	ListView_InsertColumn(listviewHandle, iCol, &lvc);
-}
-
-//general function to add ListView Item
-void addListViewItem(HWND listviewHandle, std::vector<char*> &itemValues, int number_of_columns, int &item_counter)
-{
-    LVITEM lvi = {0};
-    lvi.mask = LVIF_TEXT;
-    lvi.pszText = (LPSTR)itemValues[0];
-    ListView_InsertItem(listviewHandle, &lvi);
-
-    for (int i = 1; i < number_of_columns; i++)
-    {
-        ListView_SetItemText(listviewHandle, item_counter, i, (LPSTR)itemValues[i]);
-    }
-    item_counter++;
-}
-
-void removeListViewItem(HWND listviewHandle, int index, int &item_counter)
-{
-    ListView_DeleteItem(listviewHandle, index);
-    item_counter--;
-}
-
-//special function to add Item to Object ListView
-void addObjectListItem(unsigned int i_number, double d_mass, double d_radius, double d_position_x, double d_position_y, double d_vel_x, double d_vel_y)
-{
-    char* c_number      = convertIntToChar(i_number);
-    char* c_mass        = convertDoubleToChar(d_mass);
-    char* c_radius      = convertDoubleToChar(d_radius);
-    char* c_position_x  = convertDoubleToChar(d_position_x);
-    char* c_position_y  = convertDoubleToChar(d_position_y);
-    char* c_vel_x       = convertDoubleToChar(d_vel_x);
-    char* c_vel_y       = convertDoubleToChar(d_vel_y);
-
-    std::vector<char*> bufferVector {c_number, c_mass, c_radius, c_position_x, c_position_y, c_vel_x, c_vel_y};
-    ObjectListItemVector.push_back(bufferVector);
-
-    addListViewItem(hwndListView_Objects, ObjectListItemVector.back(), ObjectListItemVector.back().size(), objectList_item_counter);
-}
-
-char * convertDoubleToChar(double input)
-{
-    std::string input_str = std::to_string(input);
-    //remove trailing zeroes
-    input_str.erase (input_str.find_last_not_of('0') + 1, std::string::npos);
-    input_str.erase (input_str.find_last_not_of('.') + 1, std::string::npos);
-
-    const std::string::size_type size = input_str.size();
-    char *output = new char[size + 1];
-    memcpy(output, input_str.c_str(), size + 1);
-    return output;
-}
-
-char * convertIntToChar(int input)
-{
-    std::string input_str = std::to_string(input);
-    const std::string::size_type size = input_str.size();
-    char *output = new char[size + 1];
-    memcpy(output, input_str.c_str(), size + 1);
-    return output;
-}
-
-void removeObjectListItem(int index)
-{
-    removeListViewItem(hwndListView_Objects, index, objectList_item_counter);
-}
-
-void clearObjectList(void)
-{
-    ObjectListItemVector.clear();
-
-    //necessary so that the for loop is not affected by a changed counter
-    int rowsToDelete = objectList_item_counter;
-    for (int i = 0; i < rowsToDelete; i++)
-    {
-        removeListViewItem(hwndListView_Objects, 0, objectList_item_counter);
-    }
-}
-
 HWND createTextField(HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height)
 {
     return CreateWindowEx( 
@@ -421,6 +333,89 @@ HWND createTextField(HWND parentWindowHandle, const char *name, int position_x, 
         (HINSTANCE)GetWindowLongPtr(parentWindowHandle, GWLP_HINSTANCE),  //handle to the instance
         NULL                                                    // pointer to a value (not needed)
     );
+}
+
+//general function to add ListView Column
+void createListViewColumn(HWND listviewHandle, int iCol, const char *text, int width)
+{
+    LVCOLUMN lvc;
+	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
+	lvc.fmt = LVCFMT_LEFT;
+	lvc.cx = width;
+	lvc.pszText = (LPSTR)text;
+	lvc.iSubItem = iCol;
+	ListView_InsertColumn(listviewHandle, iCol, &lvc);
+}
+
+//general function to add ListView Row
+void addListViewItem(HWND listviewHandle, std::vector<char*> &itemValues, int number_of_columns, int &item_counter)
+{
+    LVITEM lvi = {0};
+    lvi.mask = LVIF_TEXT;
+    lvi.pszText = (LPSTR)itemValues[0];
+    int itemPos = ListView_InsertItem(listviewHandle, &lvi); //this line will already sort the item
+
+    for (int i = 1; i < number_of_columns; i++)
+    {
+        ListView_SetItemText(listviewHandle, itemPos, i, (LPSTR)itemValues[i]); //the item texts need to put to the position of the first item
+    }
+    item_counter++;
+}
+
+//general function to remove ListView Row
+void removeListViewItem(HWND listviewHandle, int index, int &item_counter)
+{
+    ListView_DeleteItem(listviewHandle, index);
+    item_counter--;
+}
+
+//specific function to add Item to Object ListView
+void addObjectListItem(unsigned int i_number, double d_mass, double d_radius, double d_position_x, double d_position_y, double d_vel_x, double d_vel_y)
+{
+    char* c_number      = convertIntToChar(i_number);
+    char* c_mass        = convertDoubleToChar(d_mass);
+    char* c_radius      = convertDoubleToChar(d_radius);
+    char* c_position_x  = convertDoubleToChar(d_position_x);
+    char* c_position_y  = convertDoubleToChar(d_position_y);
+    char* c_vel_x       = convertDoubleToChar(d_vel_x);
+    char* c_vel_y       = convertDoubleToChar(d_vel_y);
+
+    std::vector<char*> bufferVector {c_number, c_mass, c_radius, c_position_x, c_position_y, c_vel_x, c_vel_y};
+    ObjectListItemVector.push_back(bufferVector);
+
+    addListViewItem(hwndListView_Objects, ObjectListItemVector.back(), ObjectListItemVector.back().size(), objectList_item_counter);
+}
+
+//specific function to remove Item to Object ListView
+void removeObjectListItem(int index)
+{
+    removeListViewItem(hwndListView_Objects, index, objectList_item_counter);
+}
+
+//specific function to remove all Item from Object ListView
+void clearObjectList(void)
+{
+    ObjectListItemVector.clear();
+
+    //necessary so that the for loop is not affected by a changed counter
+    int rowsToDelete = objectList_item_counter;
+    for (int i = 0; i < rowsToDelete; i++)
+    {
+        removeListViewItem(hwndListView_Objects, 0, objectList_item_counter);
+    }
+}
+
+//specific function to get selected item index
+int getObjectListSelectedIndex(void)
+{
+    return SendMessage(hwndListView_Objects, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
+}
+
+//specific function to remove selected item
+void removeObjectListSelectedItem(void)
+{
+    int selectedItem = getObjectListSelectedIndex();
+    removeObjectListItem(selectedItem);
 }
 
 void updateCalculationTimeText(long long int calculationDuration)
@@ -486,6 +481,27 @@ bool isButtonTriggered(int buttonId)
     return triggered;
 }
 
+char * convertDoubleToChar(double input)
+{
+    std::string input_str = std::to_string(input);
+    //remove trailing zeroes
+    input_str.erase (input_str.find_last_not_of('0') + 1, std::string::npos);
+    input_str.erase (input_str.find_last_not_of('.') + 1, std::string::npos);
+
+    const std::string::size_type size = input_str.size();
+    char *output = new char[size + 1];
+    memcpy(output, input_str.c_str(), size + 1);
+    return output;
+}
+
+char * convertIntToChar(int input)
+{
+    std::string input_str = std::to_string(input);
+    const std::string::size_type size = input_str.size();
+    char *output = new char[size + 1];
+    memcpy(output, input_str.c_str(), size + 1);
+    return output;
+}
 
     // create list of active objects
     // hwndListBox_Objects = CreateWindowEx(

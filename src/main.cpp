@@ -69,7 +69,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     //intial draw
     Simulation_Loop(simulation_DC);
-    
+    double testdouble = 0.0;
     //main loop
     while (running)
     {
@@ -94,6 +94,33 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Simulation_Init();
             //draw one frame so the reset is visible if simulation is stopped
             Simulation_Loop(simulation_DC);
+        }
+
+        //add new object
+        if (isButtonTriggered(IDC_BUTTON_ADD) == true)
+        {
+            //construct object
+            COrbitalObject orbitalObject(1.0, 5.0, 700.0, 700.0, 0.0, 0.0, 0xffffff);
+            //add it to the object vector
+            orbitalObjectVector.push_back(orbitalObject);
+            testdouble = testdouble + 1.0;
+            //add item to the ListView
+            addObjectListItem(orbitalObjectVector.size() - 1, testdouble, 5.0, 700.0, 700.0, 0.0, 0.0);
+        }
+
+        //remove selected object
+        if (isButtonTriggered(IDC_BUTTON_REMOVE) == true)
+        {
+            //convert from listView index to vector index (list view newest items are at the top)
+            int selectedItem = orbitalObjectVector.size() - getObjectListSelectedIndex() - 1;
+
+            //remove object from Vector
+            if (selectedItem <= orbitalObjectVector.size())
+            {
+                orbitalObjectVector.erase(orbitalObjectVector.begin() + selectedItem);
+            }
+            //remove item from ListView
+            removeObjectListSelectedItem();
         }
     }
     return 0;
