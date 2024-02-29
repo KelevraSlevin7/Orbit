@@ -18,7 +18,8 @@ bool controlWindow_active{true};
 
 int presets_selected_index{0};
 
-#define BUTTON_START_ID 110
+static WNDPROC OriginalEditCtrlProc = NULL;
+
 struct buttonStruct {
     int     id;
     HWND    handle;
@@ -26,8 +27,16 @@ struct buttonStruct {
 };
 std::vector<buttonStruct> buttonVector;
 
+struct inputStruct {
+    int     id;
+    HWND    handle;
+};
+std::vector<inputStruct> inputVector;
+
 int objectList_item_counter{0};
 std::vector< std::vector<char*> >ObjectListItemVector;
+
+
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------static functions------------------------------------------------------------------------------
@@ -38,10 +47,12 @@ HWND    createComboBox          (HWND parentWindowHandle, int position_x, int po
 HWND    createListView          (HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** column_names, const int *column_sizes, int number_of_columns);
 void    createListViewColumn    (HWND listviewHandle, int iCol, const char *text, int width);
 void    addListViewItem         (HWND listviewHandle, std::vector<char*> &itemValues, int number_of_columns, int &item_counter);
-HWND    createTextField         (HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height);
+HWND    createTextField         (HWND parentWindowHandle, const char *init_input, int position_x, int position_y, int width, int height, int id, int addional_style);
+HWND    createInputField        (HWND parentWindowHandle, const char *init_input, int position_x, int position_y, int width, int height, int id, WNDPROC function_callback);
 char *  convertIntToChar        (int input);
 char *  convertDoubleToChar     (double input);
 HWND    getButtonHandle         (int buttonId);
+HWND    getInputHandle          (int inputId);
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------function declarations---------------------------------------------------------------------------
@@ -69,6 +80,24 @@ LRESULT CALLBACK simulationWindow_callback(HWND hwnd, UINT uMsg, WPARAM wParam, 
             simulationWindow_width = rect.right - rect.left;
             simulationWindow_height = rect.bottom - rect.top;
 			break;
+        }
+
+        //left button was clicked inside simulation window
+        case WM_LBUTTONDOWN:
+        {
+            POINT leftClick_pos;
+            if (GetCursorPos(&leftClick_pos))
+            {
+                if (ScreenToClient(hwnd, &leftClick_pos))
+                {
+                    //invert y coordinate
+                    leftClick_pos.y = simulationWindow_height - leftClick_pos.y;
+                    //write values to the text fields
+                    setInputFieldValue(IDC_TEXT_INPUT_POSX, double(leftClick_pos.x));
+                    setInputFieldValue(IDC_TEXT_INPUT_POSY, double(leftClick_pos.y));
+                }
+            }
+            break;
         }
 
         default:
@@ -119,6 +148,11 @@ LRESULT CALLBACK controlWindow_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
         }
         break;
 
+        case WM_CHAR:
+            std::cout << "something was intputted: " << wParam << std::endl;
+
+        break;
+
         default:
         {
             return DefWindowProc(hwnd, uMsg, wParam, lParam);
@@ -126,6 +160,24 @@ LRESULT CALLBACK controlWindow_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
     }
 
     return 0;
+}
+
+LRESULT CALLBACK customDoubleInput_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    if (uMsg == WM_CHAR)
+    {
+        //only allow numbers and "."
+        if ((wParam < '0' || wParam > '9') &&
+            (wParam != '.') &&
+            (wParam != VK_RETURN) &&
+            (wParam != VK_DELETE) &&
+            (wParam != VK_BACK) &&
+            (wParam != '-'))
+            {
+                return 0;
+            }
+    }
+    return CallWindowProc(OriginalEditCtrlProc, hwnd, uMsg, wParam, lParam);
 }
 
 void createWindows(HINSTANCE hInstance, int nShowCmd, HWND &simulationWindow_handle, HWND &controlWindow_handle, int x_pos, int y_pos, int width, int height)
@@ -234,7 +286,21 @@ void fillControlWindow(HWND parentWindowHandle)
     createButton(parentWindowHandle, "Remove", BUTTON_REMOVE_POSX, BUTTON_REMOVE_POSY, BUTTON_REMOVE_WIDTH, BUTTON_REMOVE_HEIGHT, IDC_BUTTON_REMOVE);
 
     //create text box to show calculation time of last simulation loop
-    hwndText_CalculationTime = createTextField(parentWindowHandle, "0", TEXT_CALCULATIONTIME_POSX, TEXT_CALCULATIONTIME_POSY, TEXT_CALCULATIONTIME_WIDTH, TEXT_CALCULATIONTIME_HEIGHT);
+    hwndText_CalculationTime = createTextField(parentWindowHandle, "0", TEXT_CALCULATIONTIME_POSX, TEXT_CALCULATIONTIME_POSY, TEXT_CALCULATIONTIME_WIDTH, TEXT_CALCULATIONTIME_HEIGHT, IDC_TEXT_STATIC_CALCTIME, SS_SUNKEN);
+
+    createInputField(parentWindowHandle, "1", TEXT_INPUT_LEFT_POSX,  TEXT_INPUT_MASSRADIUS_POSY, TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_MASS,  customDoubleInput_callback);
+    createInputField(parentWindowHandle, "5", TEXT_INPUT_RIGHT_POSX, TEXT_INPUT_MASSRADIUS_POSY, TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_RADIUS,customDoubleInput_callback);
+    createInputField(parentWindowHandle, "0", TEXT_INPUT_LEFT_POSX,  TEXT_INPUT_POSITION_POSY,   TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_POSX,  customDoubleInput_callback);
+    createInputField(parentWindowHandle, "0", TEXT_INPUT_RIGHT_POSX, TEXT_INPUT_POSITION_POSY,   TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_POSY,  customDoubleInput_callback);
+    createInputField(parentWindowHandle, "0", TEXT_INPUT_LEFT_POSX,  TEXT_INPUT_VELOCITY_POSY,   TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_VELX,  customDoubleInput_callback);
+    createInputField(parentWindowHandle, "0", TEXT_INPUT_RIGHT_POSX, TEXT_INPUT_VELOCITY_POSY,   TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_VELY,  customDoubleInput_callback);
+
+    createTextField(parentWindowHandle, "Mass",     TEXT_INPUT_LEFT_POSX,   TEXT_INPUT_MASSRADIUS_POSY - 20,    TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_DESCRIPTION, 0);
+    createTextField(parentWindowHandle, "Radius",   TEXT_INPUT_RIGHT_POSX,  TEXT_INPUT_MASSRADIUS_POSY - 20,    TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_DESCRIPTION, 0);
+    createTextField(parentWindowHandle, "Pos X",    TEXT_INPUT_LEFT_POSX,   TEXT_INPUT_POSITION_POSY - 20,      TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_DESCRIPTION, 0);
+    createTextField(parentWindowHandle, "Pos Y",    TEXT_INPUT_RIGHT_POSX,  TEXT_INPUT_POSITION_POSY - 20,      TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_DESCRIPTION, 0);
+    createTextField(parentWindowHandle, "Vel X",    TEXT_INPUT_LEFT_POSX,   TEXT_INPUT_VELOCITY_POSY - 20,      TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_DESCRIPTION, 0);
+    createTextField(parentWindowHandle, "Vel Y",    TEXT_INPUT_RIGHT_POSX,  TEXT_INPUT_VELOCITY_POSY - 20,      TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_DESCRIPTION, 0);
 }
 
 HWND createButton(HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height, int IDC)
@@ -317,22 +383,57 @@ HWND createListView(HWND parentWindowHandle, int position_x, int position_y, int
     return listView_handle;
 }
 
-HWND createTextField(HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height)
+HWND createTextField(HWND parentWindowHandle, const char *init_input, int position_x, int position_y, int width, int height, int id, int addional_style)
 {
     return CreateWindowEx( 
         0,                                                      //extended window styles
         "STATIC",                                               // Predefined class; Unicode assumed
-        name,                                                   // window name
-        WS_VISIBLE | WS_CHILD | SS_LEFT | SS_SUNKEN,            // window style
+        init_input,                                             // initial text
+        WS_VISIBLE | WS_CHILD | SS_LEFT | addional_style,       // window style
+        // WS_VISIBLE | WS_CHILD | SS_LEFT | SS_SUNKEN,            // window style
         position_x,                                             // x position
         position_y,                                             // y position
         width,                                                  // window width
         height,                                                 // nutton height
         parentWindowHandle,                                     // parent window handle
-        NULL,                                                   // control ID
+        reinterpret_cast<HMENU>(id),                            // control ID
         (HINSTANCE)GetWindowLongPtr(parentWindowHandle, GWLP_HINSTANCE),  //handle to the instance
         NULL                                                    // pointer to a value (not needed)
     );
+}
+
+HWND createInputField(HWND parentWindowHandle, const char *init_input, int position_x, int position_y, int width, int height, int id, WNDPROC function_callback)
+{
+    HWND inputHandle = CreateWindowEx( 
+        0,                                                      //extended window styles
+        "EDIT",                                                 // Predefined class; Unicode assumed
+        init_input,                                             // initial text
+        WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER,            // window style
+        position_x,                                             // x position
+        position_y,                                             // y position
+        width,                                                  // window width
+        height,                                                 // nutton height
+        parentWindowHandle,                                     // parent window handle
+        reinterpret_cast<HMENU>(id),                            // control ID
+        (HINSTANCE)GetWindowLongPtr(parentWindowHandle, GWLP_HINSTANCE),  //handle to the instance
+        NULL                                                    // pointer to a value (not needed)
+    );
+
+    if (inputHandle != NULL)
+    {
+        //replace callback function
+        WNDPROC new_proc = reinterpret_cast<WNDPROC>(SetWindowLongPtr(inputHandle, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(function_callback)));
+        if (OriginalEditCtrlProc == NULL)
+        {
+            OriginalEditCtrlProc = new_proc;
+        }
+    }
+
+    //store input data inside vector
+    inputStruct inputBuffer {id, inputHandle};
+    inputVector.push_back(inputBuffer);
+
+    return inputHandle;
 }
 
 //general function to add ListView Column
@@ -425,6 +526,28 @@ void updateCalculationTimeText(long long int calculationDuration)
     SetWindowText(hwndText_CalculationTime, TEXT(text));
 }
 
+double getInputFieldValue(int inputId)
+{
+    for (int i = 0; i < inputVector.size(); ++i)
+    {
+        if (inputVector[i].id == inputId)
+        {
+            TCHAR input_string[1024];
+            GetWindowText(inputVector[i].handle, input_string, sizeof(input_string));
+            return atof(input_string);
+        }
+    }
+    return 0.0;
+}
+
+void setInputFieldValue(int inputId, double input_value)
+{
+    SetWindowText(getInputHandle(inputId), TEXT(convertDoubleToChar(input_value)));
+}
+
+
+
+
 HWND getButtonHandle(int buttonId)
 {
     for (int i = 0; i < buttonVector.size(); ++i)
@@ -432,6 +555,18 @@ HWND getButtonHandle(int buttonId)
         if (buttonVector[i].id == buttonId)
         {
             return buttonVector[i].handle;
+        }
+    }
+    return NULL;
+}
+
+HWND getInputHandle(int inputId)
+{
+    for (int i = 0; i < inputVector.size(); ++i)
+    {
+        if (inputVector[i].id == inputId)
+        {
+            return inputVector[i].handle;
         }
     }
     return NULL;

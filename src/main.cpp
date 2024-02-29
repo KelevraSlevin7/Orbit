@@ -39,9 +39,11 @@ CDraw drawLib;
 //------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------static functions------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------------------------
-void            Simulation_Init                     (void);
-void            Simulation_Loop                     (HDC simulation_DC);
 void            Window_Loop                         (void);
+void            Simulation_Init                     (void);
+void            Simulation_Loop                     (HDC simulationHandle);
+void            checkForButtonTrigger               (HDC simulationHandle);
+void            drawAllObjects                      (HDC simulationHandle);
 void            drawObject                          (unsigned int activeBoid);
 void            drawTrail                           (unsigned int activeBoid);
 void            calculateStableOrbit_startVelocity  (double bigObject_mass, double bigObject_posX, double bigObject_posY, double smallObject_posX, double smallObject_posY, double &smallObject_velX, double &smallObject_velY);
@@ -58,8 +60,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     HWND simulationWindow_handle;
     HWND controlWindow_handle;
     createWindows(hInstance, nShowCmd, simulationWindow_handle, controlWindow_handle, render_state.x_pos, render_state.y_pos, render_state.width, render_state.height);
-    HDC simulation_DC = GetDC(simulationWindow_handle);
-    HDC control_DC = GetDC(controlWindow_handle);
+    HDC simulationHandle = GetDC(simulationWindow_handle);
 
     //intial message loop (so that the window size is updated)
     Window_Loop();
@@ -68,8 +69,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     Simulation_Init();
 
     //intial draw
-    Simulation_Loop(simulation_DC);
-    double testdouble = 0.0;
+    Simulation_Loop(simulationHandle);
+
     //main loop
     while (running)
     {
@@ -80,49 +81,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         if (simulationStatus == kStart)
         {
             //Simulate Orbital Objects
-            Simulation_Loop(simulation_DC);
+            Simulation_Loop(simulationHandle);
         }
 
-        // int selected_item;
-        // selected_item = 
-        // std::cout << selected_item << std::endl;
-
-        //check if reset needs to be performed
-        if ((isButtonTriggered(IDC_BUTTON_RESET) == true) ||
-            (isButtonTriggered(IDC_BUTTON_LOADPRESET) == true))
-        {
-            Simulation_Init();
-            //draw one frame so the reset is visible if simulation is stopped
-            Simulation_Loop(simulation_DC);
-        }
-
-        //add new object
-        if (isButtonTriggered(IDC_BUTTON_ADD) == true)
-        {
-            //construct object
-            COrbitalObject orbitalObject(1.0, 5.0, 700.0, 700.0, 0.0, 0.0, getRandomColor(orbitalObjectVector.size()));
-            //add it to the object vector
-            orbitalObjectVector.push_back(orbitalObject);
-            testdouble = testdouble + 1.0;
-            //add item to the ListView
-            addObjectListItem(orbitalObjectVector.size() - 1, testdouble, 5.0, 700.0, 700.0, 0.0, 0.0);
-        }
-
-        //remove selected object
-        if (isButtonTriggered(IDC_BUTTON_REMOVE) == true)
-        {
-            //convert from listView index to vector index (list view newest items are at the top)
-            int selectedItem = orbitalObjectVector.size() - getObjectListSelectedIndex() - 1;
-
-            // remove from vector but only if something was selected
-            if (selectedItem < orbitalObjectVector.size())
-            {
-                //remove object from Vector
-                orbitalObjectVector.erase(orbitalObjectVector.begin() + selectedItem);
-            }
-            //remove item from ListView
-            removeObjectListSelectedItem();
-        }
+        //check if any button in the control window was pressed and act accordingly
+        checkForButtonTrigger(simulationHandle);
     }
     return 0;
 }
@@ -217,7 +180,7 @@ void Simulation_Init(void)
     }
 }
 
-void Simulation_Loop(HDC simulation_DC)
+void Simulation_Loop(HDC simulationHandle)
 {
     //measure time at start of loop
     auto loop_begin = std::chrono::high_resolution_clock::now();
@@ -231,6 +194,84 @@ void Simulation_Loop(HDC simulation_DC)
         orbitalObjectVector[iter].updateForce(orbitalObjectVector);
     }
 
+    //draw all objects to the screen
+    drawAllObjects(simulationHandle);
+
+    waitUntilLoopEnd(loop_begin);
+}
+
+void checkForButtonTrigger(HDC simulationHandle)
+{
+        //either "Reset" or "Load Preset" button was pressed
+        if ((isButtonTriggered(IDC_BUTTON_RESET) == true) ||
+            (isButtonTriggered(IDC_BUTTON_LOADPRESET) == true))
+        {
+            //start init again
+            Simulation_Init();
+            //if simulation is stopped, redraw the screen with the new item
+            if (simulationStatus == kStop)
+            {
+                //Simulate Orbital Objects
+                drawLib.fillScreen(0x000000);
+                drawAllObjects(simulationHandle);
+            }
+        }
+
+        //"Add" button was pressed
+        if (isButtonTriggered(IDC_BUTTON_ADD) == true)
+        {
+            //get all the values from the input fields
+            double mass = getInputFieldValue(IDC_TEXT_INPUT_MASS);
+            double radius = getInputFieldValue(IDC_TEXT_INPUT_RADIUS);
+            double posX = getInputFieldValue(IDC_TEXT_INPUT_POSX);
+            double posY = getInputFieldValue(IDC_TEXT_INPUT_POSY);
+            double velX = getInputFieldValue(IDC_TEXT_INPUT_VELX);
+            double velY = getInputFieldValue(IDC_TEXT_INPUT_VELY);
+
+            //construct new object
+            COrbitalObject orbitalObject(mass, radius, posX, posY, velX, velY, getRandomColor(orbitalObjectVector.size()));
+            //append it to the object vector
+            orbitalObjectVector.push_back(orbitalObject);
+            //add item to the ListView
+            addObjectListItem(orbitalObjectVector.size() - 1, mass, radius, posX, posY, velX, velY);
+
+            //if simulation is stopped, redraw the screen with the new item
+            if (simulationStatus == kStop)
+            {
+                //Simulate Orbital Objects
+                drawLib.fillScreen(0x000000);
+                drawAllObjects(simulationHandle);
+            }
+        }
+
+        //"Remove" button was pressed
+        if (isButtonTriggered(IDC_BUTTON_REMOVE) == true)
+        {
+            //convert from listView index to vector index (list view newest items are at the top)
+            int selectedItem = orbitalObjectVector.size() - getObjectListSelectedIndex() - 1;
+
+            // remove from vector but only if something was selected
+            if (selectedItem < orbitalObjectVector.size())
+            {
+                //remove object from Vector
+                orbitalObjectVector.erase(orbitalObjectVector.begin() + selectedItem);
+            }
+            //remove item from ListView
+            removeObjectListSelectedItem();
+
+            //if simulation is stopped, redraw the screen with the new item
+            if (simulationStatus == kStop)
+            {
+                //Simulate Orbital Objects
+                drawLib.fillScreen(0x000000);
+                drawAllObjects(simulationHandle);
+            }
+        }
+}
+
+void drawAllObjects(HDC simulationHandle)
+{
+    //go through all objects
     for (unsigned int iter = 0; iter < orbitalObjectVector.size(); iter++)
     {
         //update object positions and trail
@@ -244,9 +285,7 @@ void Simulation_Loop(HDC simulation_DC)
     }
 
     //Render
-    StretchDIBits(simulation_DC, 0, 0, render_state.width, render_state.height, 0, 0, render_state.width, render_state.height, render_state.memory, &render_state.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
-
-    waitUntilLoopEnd(loop_begin);
+    StretchDIBits(simulationHandle, 0, 0, render_state.width, render_state.height, 0, 0, render_state.width, render_state.height, render_state.memory, &render_state.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
 }
 
 void drawObject(unsigned int activeBoid)
