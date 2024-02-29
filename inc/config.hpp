@@ -14,7 +14,7 @@
 
 //initial control window size
 #define INIT_CONTROL_WIDTH   750
-#define INIT_CONTROL_HEIGHT  300
+#define INIT_CONTROL_HEIGHT  500
 #define INIT_CONTROL_POS_X   (INIT_SIMULATION_POS_X + INIT_SIMULATION_WIDTH + 100)
 #define INIT_CONTROL_POS_Y   (INIT_SIMULATION_POS_Y)
 
@@ -53,26 +53,26 @@
 //"object list" listView
 //size
     #define LISTVIEW_OBJECTLIST_WIDTH   480
-    #define LISTVIEW_OBJECTLIST_HEIGHT  150
+    #define LISTVIEW_OBJECTLIST_HEIGHT  250
 //pos
     #define LISTVIEW_OBJECTLIST_POSX    (COMBOBOX_PRESETS_POSX)
     #define LISTVIEW_OBJECTLIST_POSY    (COMBOBOX_PRESETS_POSY + 40)
 
 //"add" button
 //size
-    #define BUTTON_ADD_WIDTH            70
-    #define BUTTON_ADD_HEIGHT           20
+    #define BUTTON_ADD_WIDTH            (BUTTON_RESET_WIDTH)
+    #define BUTTON_ADD_HEIGHT           30
 //pos
-    #define BUTTON_ADD_POSX             (COMBOBOX_PRESETS_POSX + COMBOBOX_PRESETS_WIDTH + 50)
-    #define BUTTON_ADD_POSY             (COMBOBOX_PRESETS_POSY)
+    #define BUTTON_ADD_POSX             (BUTTON_RESET_POSX)
+    #define BUTTON_ADD_POSY             (BUTTON_RESET_POSY + BUTTON_RESET_HEIGHT + 40)
 
 //"remove" button
 //size
-    #define BUTTON_REMOVE_WIDTH         70
-    #define BUTTON_REMOVE_HEIGHT        20
+    #define BUTTON_REMOVE_WIDTH         (BUTTON_ADD_WIDTH)
+    #define BUTTON_REMOVE_HEIGHT        30
 //pos
-    #define BUTTON_REMOVE_POSX          (BUTTON_ADD_POSX + BUTTON_ADD_WIDTH + 50)
-    #define BUTTON_REMOVE_POSY          (COMBOBOX_PRESETS_POSY)
+    #define BUTTON_REMOVE_POSX          (BUTTON_ADD_POSX)
+    #define BUTTON_REMOVE_POSY          (BUTTON_ADD_POSY + BUTTON_ADD_HEIGHT + 100)
 
 //"calculation time" text
 //size

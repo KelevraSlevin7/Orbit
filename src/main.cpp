@@ -100,7 +100,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         if (isButtonTriggered(IDC_BUTTON_ADD) == true)
         {
             //construct object
-            COrbitalObject orbitalObject(1.0, 5.0, 700.0, 700.0, 0.0, 0.0, 0xffffff);
+            COrbitalObject orbitalObject(1.0, 5.0, 700.0, 700.0, 0.0, 0.0, getRandomColor(orbitalObjectVector.size()));
             //add it to the object vector
             orbitalObjectVector.push_back(orbitalObject);
             testdouble = testdouble + 1.0;
@@ -114,9 +114,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             //convert from listView index to vector index (list view newest items are at the top)
             int selectedItem = orbitalObjectVector.size() - getObjectListSelectedIndex() - 1;
 
-            //remove object from Vector
-            if (selectedItem <= orbitalObjectVector.size())
+            // remove from vector but only if something was selected
+            if (selectedItem < orbitalObjectVector.size())
             {
+                //remove object from Vector
                 orbitalObjectVector.erase(orbitalObjectVector.begin() + selectedItem);
             }
             //remove item from ListView
