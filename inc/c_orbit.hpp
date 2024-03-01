@@ -38,6 +38,8 @@ public:
     void            setMass                 (double mass);
     void            setRadius               (double radius, bool scaled);
     void            setColor                (unsigned int color);
+    void            setInitValues           (void);
+    void            restoreInitValues       (void);
     void            outputInformation       (int instance);
 
 private:
@@ -47,12 +49,14 @@ private:
         kVerlet  = 1U
     };
 
-    coordinatesF position_ {};
-    coordinatesF position_prev_ {};
-    coordinatesF accel_ {};
     double mass_{1.0};
     double radius_ {5.0};
+    coordinatesF position_ {};
+    coordinatesF position_prev_ {};
     unsigned int color_ {0xff0000};
+    coordinatesF accel_ {};
+    coordinatesF init_position_ {};
+    coordinatesF init_position_prev_ {};
     coordinatesI trail_[TRAIL_LENGTH] = {0};
     unsigned int trailIterator_ {0};
     EnSimulationAlgorithm simulationAlgorithm_ {EnSimulationAlgorithm::kVerlet};

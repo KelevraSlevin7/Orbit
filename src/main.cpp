@@ -202,71 +202,74 @@ void Simulation_Loop(HDC simulationHandle)
 
 void checkForButtonTrigger(HDC simulationHandle)
 {
-        //either "Reset" or "Load Preset" button was pressed
-        if ((isButtonTriggered(IDC_BUTTON_RESET) == true) ||
-            (isButtonTriggered(IDC_BUTTON_LOADPRESET) == true))
+    bool redraw_needed {false};
+
+    //"Reset" button was pressed
+    if (isButtonTriggered(IDC_BUTTON_RESET) == true)
+    {
+        //restore init values of all objects
+        for (unsigned int iter = 0; iter < orbitalObjectVector.size(); iter++)
         {
-            //start init again
-            Simulation_Init();
-            //if simulation is stopped, redraw the screen with the new item
-            if (simulationStatus == kStop)
-            {
-                //Simulate Orbital Objects
-                drawLib.fillScreen(0x000000);
-                drawAllObjects(simulationHandle);
-            }
+            orbitalObjectVector[iter].restoreInitValues();
         }
+        redraw_needed = true;
+    }
 
-        //"Add" button was pressed
-        if (isButtonTriggered(IDC_BUTTON_ADD) == true)
+    //"Load Preset" button was pressed
+    if (isButtonTriggered(IDC_BUTTON_LOADPRESET) == true)
+    {
+        //start init again
+        Simulation_Init();
+        redraw_needed = true;
+    }
+
+    //"Add" button was pressed
+    if (isButtonTriggered(IDC_BUTTON_ADD) == true)
+    {
+        //get all the values from the input fields
+        double mass = getInputFieldValue(IDC_TEXT_INPUT_MASS);
+        double radius = getInputFieldValue(IDC_TEXT_INPUT_RADIUS);
+        double posX = getInputFieldValue(IDC_TEXT_INPUT_POSX);
+        double posY = getInputFieldValue(IDC_TEXT_INPUT_POSY);
+        double velX = getInputFieldValue(IDC_TEXT_INPUT_VELX);
+        double velY = getInputFieldValue(IDC_TEXT_INPUT_VELY);
+
+        //construct new object
+        COrbitalObject orbitalObject(mass, radius, posX, posY, velX, velY, getRandomColor(orbitalObjectVector.size()));
+        //append it to the object vector
+        orbitalObjectVector.push_back(orbitalObject);
+        //add item to the ListView
+        addObjectListItem(orbitalObjectVector.size() - 1, mass, radius, posX, posY, velX, velY);
+        redraw_needed = true;
+    }
+
+    //"Remove" button was pressed
+    if (isButtonTriggered(IDC_BUTTON_REMOVE) == true)
+    {
+        //convert from listView index to vector index (list view newest items are at the top)
+        int selectedItem = orbitalObjectVector.size() - getObjectListSelectedIndex() - 1;
+
+        // remove from vector but only if something was selected
+        if (selectedItem < orbitalObjectVector.size())
         {
-            //get all the values from the input fields
-            double mass = getInputFieldValue(IDC_TEXT_INPUT_MASS);
-            double radius = getInputFieldValue(IDC_TEXT_INPUT_RADIUS);
-            double posX = getInputFieldValue(IDC_TEXT_INPUT_POSX);
-            double posY = getInputFieldValue(IDC_TEXT_INPUT_POSY);
-            double velX = getInputFieldValue(IDC_TEXT_INPUT_VELX);
-            double velY = getInputFieldValue(IDC_TEXT_INPUT_VELY);
-
-            //construct new object
-            COrbitalObject orbitalObject(mass, radius, posX, posY, velX, velY, getRandomColor(orbitalObjectVector.size()));
-            //append it to the object vector
-            orbitalObjectVector.push_back(orbitalObject);
-            //add item to the ListView
-            addObjectListItem(orbitalObjectVector.size() - 1, mass, radius, posX, posY, velX, velY);
-
-            //if simulation is stopped, redraw the screen with the new item
-            if (simulationStatus == kStop)
-            {
-                //Simulate Orbital Objects
-                drawLib.fillScreen(0x000000);
-                drawAllObjects(simulationHandle);
-            }
+            //remove object from Vector
+            orbitalObjectVector.erase(orbitalObjectVector.begin() + selectedItem);
         }
-
-        //"Remove" button was pressed
-        if (isButtonTriggered(IDC_BUTTON_REMOVE) == true)
+        //remove item from ListView
+        removeObjectListSelectedItem();
+        redraw_needed = true;
+    }
+    
+    if (redraw_needed == true)
+    {
+        //if simulation is stopped, redraw the screen with the new item
+        if (simulationStatus == kStop)
         {
-            //convert from listView index to vector index (list view newest items are at the top)
-            int selectedItem = orbitalObjectVector.size() - getObjectListSelectedIndex() - 1;
-
-            // remove from vector but only if something was selected
-            if (selectedItem < orbitalObjectVector.size())
-            {
-                //remove object from Vector
-                orbitalObjectVector.erase(orbitalObjectVector.begin() + selectedItem);
-            }
-            //remove item from ListView
-            removeObjectListSelectedItem();
-
-            //if simulation is stopped, redraw the screen with the new item
-            if (simulationStatus == kStop)
-            {
-                //Simulate Orbital Objects
-                drawLib.fillScreen(0x000000);
-                drawAllObjects(simulationHandle);
-            }
+            //Simulate Orbital Objects
+            drawLib.fillScreen(0x000000);
+            drawAllObjects(simulationHandle);
         }
+    }
 }
 
 void drawAllObjects(HDC simulationHandle)

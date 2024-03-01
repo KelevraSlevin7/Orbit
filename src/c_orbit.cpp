@@ -10,6 +10,7 @@ COrbitalObject::COrbitalObject(double mass, double radius, double start_position
     setPos(start_position_x, start_position_y);
     setVel(start_velocity_x, start_velocity_y);
     setColor(color);
+    setInitValues();
 }
 
 void COrbitalObject::updateForce(std::vector<COrbitalObject>& orbitalObjects)
@@ -196,6 +197,33 @@ void COrbitalObject::setColor(unsigned int color)
         color_ = 0xffffff;
     }
 }
+
+void COrbitalObject::setInitValues(void)
+{
+    init_position_.x = position_.x;
+    init_position_.y = position_.y;
+
+    init_position_prev_.x = position_prev_.x;
+    init_position_prev_.y = position_prev_.y;
+}
+
+void COrbitalObject::restoreInitValues(void)
+{
+    position_.x = init_position_.x;
+    position_.y = init_position_.y;
+
+    position_prev_.x = init_position_prev_.x;
+    position_prev_.y = init_position_prev_.y;
+
+    //reset trail
+    for (int i = 0; i < TRAIL_LENGTH; ++i)
+    {
+        trail_[i].x = 0;
+        trail_[i].y = 0;
+    }
+    trailIterator_  = 0;
+}
+
 
 void COrbitalObject::outputInformation(int instance)
 {
