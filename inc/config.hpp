@@ -13,8 +13,8 @@
 #define INIT_SIMULATION_POS_Y   100
 
 //initial control window size
-#define INIT_CONTROL_WIDTH   740
-#define INIT_CONTROL_HEIGHT  460
+#define INIT_CONTROL_WIDTH   710
+#define INIT_CONTROL_HEIGHT  470
 #define INIT_CONTROL_POS_X   (INIT_SIMULATION_POS_X + INIT_SIMULATION_WIDTH + 100)
 #define INIT_CONTROL_POS_Y   (INIT_SIMULATION_POS_Y)
 
@@ -53,7 +53,7 @@
 //"object list" listView
 //size
     #define LISTVIEW_OBJECTLIST_WIDTH   480
-    #define LISTVIEW_OBJECTLIST_HEIGHT  280
+    #define LISTVIEW_OBJECTLIST_HEIGHT  310
 //pos
     #define LISTVIEW_OBJECTLIST_POSX    (COMBOBOX_PRESETS_POSX)
     #define LISTVIEW_OBJECTLIST_POSY    (COMBOBOX_PRESETS_POSY + 40)
@@ -72,7 +72,7 @@
     #define BUTTON_REMOVE_HEIGHT        30
 //pos
     #define BUTTON_REMOVE_POSX          (BUTTON_ADD_POSX)
-    #define BUTTON_REMOVE_POSY          (BUTTON_ADD_POSY + BUTTON_ADD_HEIGHT + 130)
+    #define BUTTON_REMOVE_POSY          (BUTTON_ADD_POSY + BUTTON_ADD_HEIGHT + 160)
 
 //"calculation time" text
 //size
@@ -92,6 +92,19 @@
     #define TEXT_INPUT_MASSRADIUS_POSY  (BUTTON_ADD_POSY + BUTTON_ADD_HEIGHT + 20)
     #define TEXT_INPUT_POSITION_POSY    (TEXT_INPUT_MASSRADIUS_POSY + TEXT_INPUT_HEIGHT + 20)
     #define TEXT_INPUT_VELOCITY_POSY    (TEXT_INPUT_POSITION_POSY + TEXT_INPUT_HEIGHT + 20)
+
+//static fields
+//size
+    #define TEXT_STATIC_WIDTH           80
+    #define TEXT_STATIC_HEIGHT          20
+
+//"randomize" checkbox
+//size
+    #define BUTTON_RANDOMIZE_WIDTH      100
+    #define BUTTON_RANDOMIZE_HEIGHT     20
+//pos
+    #define BUTTON_RANDOMIZE_POSX       (TEXT_INPUT_LEFT_POSX)
+    #define BUTTON_RANDOMIZE_POSY       (TEXT_INPUT_VELOCITY_POSY + TEXT_INPUT_HEIGHT + 10)
 
 //number of presets and the correpsonding number of objects per preset
 #define NUMBER_OF_PRESETS   5

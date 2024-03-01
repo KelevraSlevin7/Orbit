@@ -56,6 +56,9 @@ void            waitUntilLoopEnd                    (std::chrono::time_point<std
 //------------------------------------------------------------------------------------------------------------------------------------------
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
+    //randomize the randomizer
+    srand(time(NULL));
+
     //create all windows
     HWND simulationWindow_handle;
     HWND controlWindow_handle;
@@ -101,10 +104,10 @@ void Window_Loop(void)
     }
 
     //check if the size of the simulation window changed
-    if ((get_simulationWindow_width()  != render_state.width) ||
-        (get_simulationWindow_height() != render_state.height))
+    if ((getSimulationWindowWidth()  != render_state.width) ||
+        (getSimulationWindowHeight() != render_state.height))
     {
-        updateWindowSize(get_simulationWindow_width(), get_simulationWindow_height());
+        updateWindowSize(getSimulationWindowWidth(), getSimulationWindowHeight());
     }
 
     //check if start stop button was pressed and change the simulation state accordingly
@@ -125,8 +128,8 @@ void Window_Loop(void)
     //stop program if any window is closed
     //ToDo: only stop when both are closed
     //ToDo: add possibility to open closed windows again
-    if ((get_simulationWindow_status() == false) ||
-        (get_controlWindow_status() == false))
+    if ((getSimulationWindowStatus() == false) ||
+        (getControlWindowStatus() == false))
     {
         running = false;
     }
@@ -227,12 +230,24 @@ void checkForButtonTrigger(HDC simulationHandle)
     if (isButtonTriggered(IDC_BUTTON_ADD) == true)
     {
         //get all the values from the input fields
-        double mass = getInputFieldValue(IDC_TEXT_INPUT_MASS);
-        double radius = getInputFieldValue(IDC_TEXT_INPUT_RADIUS);
-        double posX = getInputFieldValue(IDC_TEXT_INPUT_POSX);
-        double posY = getInputFieldValue(IDC_TEXT_INPUT_POSY);
-        double velX = getInputFieldValue(IDC_TEXT_INPUT_VELX);
-        double velY = getInputFieldValue(IDC_TEXT_INPUT_VELY);
+        double mass = getTextFieldValueAsDouble(IDC_TEXT_INPUT_MASS);
+        double radius = getTextFieldValueAsDouble(IDC_TEXT_INPUT_RADIUS);
+        double posX, posY, velX, velY;
+        if (getCheckBoxState(IDC_BUTTON_RANDOMIZE) == false)
+        {
+            posX = getTextFieldValueAsDouble(IDC_TEXT_INPUT_POSX);
+            posY = getTextFieldValueAsDouble(IDC_TEXT_INPUT_POSY);
+            velX = getTextFieldValueAsDouble(IDC_TEXT_INPUT_VELX);
+            velY = getTextFieldValueAsDouble(IDC_TEXT_INPUT_VELY);
+        }
+        else
+        {
+            //randomization is activated, x field is now minimum and y field is maximum
+            posX = getRandomNumber(getTextFieldValueAsDouble(IDC_TEXT_INPUT_POSX), getTextFieldValueAsDouble(IDC_TEXT_INPUT_POSY));
+            posY = getRandomNumber(getTextFieldValueAsDouble(IDC_TEXT_INPUT_POSX), getTextFieldValueAsDouble(IDC_TEXT_INPUT_POSY));
+            velX = getRandomNumber(getTextFieldValueAsDouble(IDC_TEXT_INPUT_VELX), getTextFieldValueAsDouble(IDC_TEXT_INPUT_VELY));
+            velY = getRandomNumber(getTextFieldValueAsDouble(IDC_TEXT_INPUT_VELX), getTextFieldValueAsDouble(IDC_TEXT_INPUT_VELY));
+        }
 
         //construct new object
         COrbitalObject orbitalObject(mass, radius, posX, posY, velX, velY, getRandomColor(orbitalObjectVector.size()));

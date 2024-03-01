@@ -30,22 +30,20 @@ struct buttonStruct {
 };
 std::vector<buttonStruct> buttonVector;
 
-struct inputStruct {
+struct textFieldStruct {
     int     id;
     HWND    handle;
 };
-std::vector<inputStruct> inputVector;
+std::vector<textFieldStruct> textFieldVector;
 
 int objectList_item_counter{0};
 std::vector< std::vector<char*> >ObjectListItemVector;
-
-
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------static functions------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------------------------
 void    fillControlWindow       (HWND parentWindowHandle);
-HWND    createButton            (HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height, int IDC);
+HWND    createButton            (HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height, int IDC, int addional_style);
 HWND    createComboBox          (HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** item_names, int number_of_columns);
 HWND    createListView          (HWND parentWindowHandle, int position_x, int position_y, int width, int height, HMENU IDC, const char ** column_names, const int *column_sizes, int number_of_columns);
 void    createListViewColumn    (HWND listviewHandle, int iCol, const char *text, int width);
@@ -55,7 +53,7 @@ HWND    createInputField        (HWND parentWindowHandle, const char *init_input
 char *  convertIntToChar        (int input);
 char *  convertDoubleToChar     (double input);
 HWND    getButtonHandle         (int buttonId);
-HWND    getInputHandle          (int inputId);
+HWND    getTextFieldHandle      (int inputId);
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------function declarations---------------------------------------------------------------------------
@@ -95,8 +93,8 @@ LRESULT CALLBACK simulationWindow_callback(HWND hwnd, UINT uMsg, WPARAM wParam, 
                     //invert y coordinate
                     simulationWindwos_leftclickDownPos.y = simulationWindow_height - simulationWindwos_leftclickDownPos.y;
                     //write values to the text fields
-                    setInputFieldValue(IDC_TEXT_INPUT_POSX, double(simulationWindwos_leftclickDownPos.x));
-                    setInputFieldValue(IDC_TEXT_INPUT_POSY, double(simulationWindwos_leftclickDownPos.y));
+                    setTextFieldValueAsDouble(IDC_TEXT_INPUT_POSX, double(simulationWindwos_leftclickDownPos.x));
+                    setTextFieldValueAsDouble(IDC_TEXT_INPUT_POSY, double(simulationWindwos_leftclickDownPos.y));
                 }
             }
             break;
@@ -114,8 +112,8 @@ LRESULT CALLBACK simulationWindow_callback(HWND hwnd, UINT uMsg, WPARAM wParam, 
                     double vel_x = static_cast<double>(simulationWindwos_leftclickUpPos.x - simulationWindwos_leftclickDownPos.x) / VELOCITY_SCALE_REDUCTION;
                     double vel_y = static_cast<double>(simulationWindwos_leftclickUpPos.y - simulationWindwos_leftclickDownPos.y) / VELOCITY_SCALE_REDUCTION;
                     //write values to the text fields
-                    setInputFieldValue(IDC_TEXT_INPUT_VELX, vel_x);
-                    setInputFieldValue(IDC_TEXT_INPUT_VELY, vel_y);
+                    setTextFieldValueAsDouble(IDC_TEXT_INPUT_VELX, vel_x);
+                    setTextFieldValueAsDouble(IDC_TEXT_INPUT_VELY, vel_y);
                 }
             }
             break;
@@ -165,13 +163,48 @@ LRESULT CALLBACK controlWindow_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
                     presets_selected_index = SendMessage((HWND)lParam, (UINT)CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
                 }
             }
+
+            //"randomize" button was pressed
+            if (isButtonTriggered(IDC_BUTTON_RANDOMIZE))
+            {
+                //check which state the check box button has
+                if (getCheckBoxState(IDC_BUTTON_RANDOMIZE) == true)
+                {
+                    //change checkbox state to unchecked
+                    SendMessage(getButtonHandle(IDC_BUTTON_RANDOMIZE), BM_SETCHECK, BST_UNCHECKED, 0);
+
+                    //update text box test
+                    setTextFieldValueAsText(IDC_TEXT_STATIC_POSX, "Pos X");
+                    setTextFieldValueAsText(IDC_TEXT_STATIC_POSY, "Pos Y");
+                    setTextFieldValueAsText(IDC_TEXT_STATIC_VELX, "Vel X");
+                    setTextFieldValueAsText(IDC_TEXT_STATIC_VELY, "Vel Y");
+
+                    setTextFieldValueAsDouble(IDC_TEXT_INPUT_POSX, 0.0);
+                    setTextFieldValueAsDouble(IDC_TEXT_INPUT_POSY, 0.0);
+                    setTextFieldValueAsDouble(IDC_TEXT_INPUT_VELX, 0.0);
+                    setTextFieldValueAsDouble(IDC_TEXT_INPUT_VELY, 0.0);
+                    
+                }
+                else
+                {
+                    //change checkbox state to checked
+                    SendMessage(getButtonHandle(IDC_BUTTON_RANDOMIZE), BM_SETCHECK, BST_CHECKED, 0);
+
+                    //update text box test
+                    setTextFieldValueAsText(IDC_TEXT_STATIC_POSX, "    Position - ");
+                    setTextFieldValueAsText(IDC_TEXT_STATIC_POSY, "Range");
+                    setTextFieldValueAsText(IDC_TEXT_STATIC_VELX, "    Velocity - ");
+                    setTextFieldValueAsText(IDC_TEXT_STATIC_VELY, "Range");
+
+                    int min_dim = ((simulationWindow_width < simulationWindow_height) ? simulationWindow_width : simulationWindow_height);
+                    setTextFieldValueAsDouble(IDC_TEXT_INPUT_POSX, 0.0);
+                    setTextFieldValueAsDouble(IDC_TEXT_INPUT_POSY, static_cast<double>(min_dim));
+                    setTextFieldValueAsDouble(IDC_TEXT_INPUT_VELX, -2.0);
+                    setTextFieldValueAsDouble(IDC_TEXT_INPUT_VELY, 2.0);
+                }
+            }
             break;
         }
-        break;
-
-        case WM_CHAR:
-            std::cout << "something was intputted: " << wParam << std::endl;
-
         break;
 
         default:
@@ -292,23 +325,24 @@ void createWindows(HINSTANCE hInstance, int nShowCmd, HWND &simulationWindow_han
 void fillControlWindow(HWND parentWindowHandle)
 {
     //create button for starting and stopping the simulation
-    createButton(parentWindowHandle, "Stop", BUTTON_START_POSX, BUTTON_START_POSY, BUTTON_START_WIDTH, BUTTON_START_HEIGHT, IDC_BUTTON_STARTSTOP);
+    createButton(parentWindowHandle, "Stop", BUTTON_START_POSX, BUTTON_START_POSY, BUTTON_START_WIDTH, BUTTON_START_HEIGHT, IDC_BUTTON_STARTSTOP, BS_DEFPUSHBUTTON);
 
     //create button to reset the simulation to the initial state
-    createButton(parentWindowHandle, "Reset", BUTTON_RESET_POSX, BUTTON_RESET_POSY, BUTTON_RESET_WIDTH, BUTTON_RESET_HEIGHT, IDC_BUTTON_RESET);
+    createButton(parentWindowHandle, "Reset", BUTTON_RESET_POSX, BUTTON_RESET_POSY, BUTTON_RESET_WIDTH, BUTTON_RESET_HEIGHT, IDC_BUTTON_RESET, BS_DEFPUSHBUTTON);
 
     //create button and comboBox for presets
-    createButton(parentWindowHandle, "Load Preset", BUTTON_LOADPRESET_POSX, BUTTON_LOADPRESET_POSY, BUTTON_LOADPRESET_WIDTH, BUTTON_LOADPRESET_HEIGHT, IDC_BUTTON_LOADPRESET);
+    createButton(parentWindowHandle, "Load Preset", BUTTON_LOADPRESET_POSX, BUTTON_LOADPRESET_POSY, BUTTON_LOADPRESET_WIDTH, BUTTON_LOADPRESET_HEIGHT, IDC_BUTTON_LOADPRESET, BS_DEFPUSHBUTTON);
     hwndComboBox_Presets = createComboBox(parentWindowHandle, COMBOBOX_PRESETS_POSX, COMBOBOX_PRESETS_POSY, COMBOBOX_PRESETS_WIDTH, COMBOBOX_PRESETS_HEIGHT, (HMENU)IDC_COMBOBOX_PRESETS, presetNames, NUMBER_OF_PRESETS);
     
-    // create list of active objects
+    //create list of active objects
     hwndListView_Objects = createListView(parentWindowHandle, LISTVIEW_OBJECTLIST_POSX, LISTVIEW_OBJECTLIST_POSY, LISTVIEW_OBJECTLIST_WIDTH, LISTVIEW_OBJECTLIST_HEIGHT, (HMENU)IDC_LISTVIEW_OBJECTS, objectListColumsText, objectListColumsSize, NUMBER_OF_OBJECTLIST_COLUMNS);
-    createButton(parentWindowHandle, "Add", BUTTON_ADD_POSX, BUTTON_ADD_POSY, BUTTON_ADD_WIDTH, BUTTON_ADD_HEIGHT, IDC_BUTTON_ADD);
-    createButton(parentWindowHandle, "Remove", BUTTON_REMOVE_POSX, BUTTON_REMOVE_POSY, BUTTON_REMOVE_WIDTH, BUTTON_REMOVE_HEIGHT, IDC_BUTTON_REMOVE);
+    createButton(parentWindowHandle, "Add", BUTTON_ADD_POSX, BUTTON_ADD_POSY, BUTTON_ADD_WIDTH, BUTTON_ADD_HEIGHT, IDC_BUTTON_ADD, BS_DEFPUSHBUTTON);
+    createButton(parentWindowHandle, "Remove", BUTTON_REMOVE_POSX, BUTTON_REMOVE_POSY, BUTTON_REMOVE_WIDTH, BUTTON_REMOVE_HEIGHT, IDC_BUTTON_REMOVE, BS_DEFPUSHBUTTON);
 
     //create text box to show calculation time of last simulation loop
     hwndText_CalculationTime = createTextField(parentWindowHandle, "0", TEXT_CALCULATIONTIME_POSX, TEXT_CALCULATIONTIME_POSY, TEXT_CALCULATIONTIME_WIDTH, TEXT_CALCULATIONTIME_HEIGHT, IDC_TEXT_STATIC_CALCTIME, SS_SUNKEN);
 
+    //create input text fields for object creation
     createInputField(parentWindowHandle, "1", TEXT_INPUT_LEFT_POSX,  TEXT_INPUT_MASSRADIUS_POSY, TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_MASS,  customDoubleInput_callback);
     createInputField(parentWindowHandle, "5", TEXT_INPUT_RIGHT_POSX, TEXT_INPUT_MASSRADIUS_POSY, TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_RADIUS,customDoubleInput_callback);
     createInputField(parentWindowHandle, "0", TEXT_INPUT_LEFT_POSX,  TEXT_INPUT_POSITION_POSY,   TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_POSX,  customDoubleInput_callback);
@@ -316,21 +350,25 @@ void fillControlWindow(HWND parentWindowHandle)
     createInputField(parentWindowHandle, "0", TEXT_INPUT_LEFT_POSX,  TEXT_INPUT_VELOCITY_POSY,   TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_VELX,  customDoubleInput_callback);
     createInputField(parentWindowHandle, "0", TEXT_INPUT_RIGHT_POSX, TEXT_INPUT_VELOCITY_POSY,   TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_VELY,  customDoubleInput_callback);
 
-    createTextField(parentWindowHandle, "Mass",     TEXT_INPUT_LEFT_POSX,   TEXT_INPUT_MASSRADIUS_POSY - 20,    TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_DESCRIPTION, 0);
-    createTextField(parentWindowHandle, "Radius",   TEXT_INPUT_RIGHT_POSX,  TEXT_INPUT_MASSRADIUS_POSY - 20,    TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_DESCRIPTION, 0);
-    createTextField(parentWindowHandle, "Pos X",    TEXT_INPUT_LEFT_POSX,   TEXT_INPUT_POSITION_POSY - 20,      TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_DESCRIPTION, 0);
-    createTextField(parentWindowHandle, "Pos Y",    TEXT_INPUT_RIGHT_POSX,  TEXT_INPUT_POSITION_POSY - 20,      TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_DESCRIPTION, 0);
-    createTextField(parentWindowHandle, "Vel X",    TEXT_INPUT_LEFT_POSX,   TEXT_INPUT_VELOCITY_POSY - 20,      TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_DESCRIPTION, 0);
-    createTextField(parentWindowHandle, "Vel Y",    TEXT_INPUT_RIGHT_POSX,  TEXT_INPUT_VELOCITY_POSY - 20,      TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_DESCRIPTION, 0);
+    //create static text fields for description of input text fields
+    createTextField(parentWindowHandle, "Mass",     TEXT_INPUT_LEFT_POSX,   TEXT_INPUT_MASSRADIUS_POSY - 20,    TEXT_STATIC_WIDTH, TEXT_STATIC_HEIGHT, IDC_TEXT_STATIC_MASS, 0);
+    createTextField(parentWindowHandle, "Radius",   TEXT_INPUT_RIGHT_POSX,  TEXT_INPUT_MASSRADIUS_POSY - 20,    TEXT_STATIC_WIDTH, TEXT_STATIC_HEIGHT, IDC_TEXT_STATIC_RADIUS, 0);
+    createTextField(parentWindowHandle, "Pos X",    TEXT_INPUT_LEFT_POSX,   TEXT_INPUT_POSITION_POSY - 20,      TEXT_STATIC_WIDTH, TEXT_STATIC_HEIGHT, IDC_TEXT_STATIC_POSX, 0);
+    createTextField(parentWindowHandle, "Pos Y",    TEXT_INPUT_RIGHT_POSX,  TEXT_INPUT_POSITION_POSY - 20,      TEXT_STATIC_WIDTH, TEXT_STATIC_HEIGHT, IDC_TEXT_STATIC_POSY, 0);
+    createTextField(parentWindowHandle, "Vel X",    TEXT_INPUT_LEFT_POSX,   TEXT_INPUT_VELOCITY_POSY - 20,      TEXT_STATIC_WIDTH, TEXT_STATIC_HEIGHT, IDC_TEXT_STATIC_VELX, 0);
+    createTextField(parentWindowHandle, "Vel Y",    TEXT_INPUT_RIGHT_POSX,  TEXT_INPUT_VELOCITY_POSY - 20,      TEXT_STATIC_WIDTH, TEXT_STATIC_HEIGHT, IDC_TEXT_STATIC_VELY, 0);
+
+    //create checkbox button for randomization of position and velocity
+    createButton(parentWindowHandle, "Randomize", BUTTON_RANDOMIZE_POSX, BUTTON_RANDOMIZE_POSY, BUTTON_RANDOMIZE_WIDTH, BUTTON_RANDOMIZE_HEIGHT, IDC_BUTTON_RANDOMIZE, BS_CHECKBOX);
 }
 
-HWND createButton(HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height, int IDC)
+HWND createButton(HWND parentWindowHandle, const char *name, int position_x, int position_y, int width, int height, int IDC, int addional_style)
 {
     HWND buttonHandle = CreateWindowEx( 
         0,                                                      //extended window styles
         "BUTTON",                                               // Predefined class; Unicode assumed
         name,                                                   // window name
-        WS_VISIBLE | WS_CHILD | WS_TABSTOP | BS_DEFPUSHBUTTON,  // window style
+        WS_VISIBLE | WS_CHILD | WS_TABSTOP | addional_style,    // window style
         position_x,                                             // x position
         position_y,                                             // y position
         width,                                                  // window width
@@ -406,7 +444,7 @@ HWND createListView(HWND parentWindowHandle, int position_x, int position_y, int
 
 HWND createTextField(HWND parentWindowHandle, const char *init_input, int position_x, int position_y, int width, int height, int id, int addional_style)
 {
-    return CreateWindowEx( 
+    HWND textFieldHandle = CreateWindowEx( 
         0,                                                      //extended window styles
         "STATIC",                                               // Predefined class; Unicode assumed
         init_input,                                             // initial text
@@ -421,6 +459,12 @@ HWND createTextField(HWND parentWindowHandle, const char *init_input, int positi
         (HINSTANCE)GetWindowLongPtr(parentWindowHandle, GWLP_HINSTANCE),  //handle to the instance
         NULL                                                    // pointer to a value (not needed)
     );
+
+    //store input data inside vector
+    textFieldStruct textFieldBuffer {id, textFieldHandle};
+    textFieldVector.push_back(textFieldBuffer);
+
+    return textFieldHandle;
 }
 
 HWND createInputField(HWND parentWindowHandle, const char *init_input, int position_x, int position_y, int width, int height, int id, WNDPROC function_callback)
@@ -451,8 +495,8 @@ HWND createInputField(HWND parentWindowHandle, const char *init_input, int posit
     }
 
     //store input data inside vector
-    inputStruct inputBuffer {id, inputHandle};
-    inputVector.push_back(inputBuffer);
+    textFieldStruct inputBuffer {id, inputHandle};
+    textFieldVector.push_back(inputBuffer);
 
     return inputHandle;
 }
@@ -547,23 +591,28 @@ void updateCalculationTimeText(long long int calculationDuration)
     SetWindowText(hwndText_CalculationTime, TEXT(text));
 }
 
-double getInputFieldValue(int inputId)
+double getTextFieldValueAsDouble(int inputId)
 {
-    for (int i = 0; i < inputVector.size(); ++i)
+    for (int i = 0; i < textFieldVector.size(); ++i)
     {
-        if (inputVector[i].id == inputId)
+        if (textFieldVector[i].id == inputId)
         {
             TCHAR input_string[1024];
-            GetWindowText(inputVector[i].handle, input_string, sizeof(input_string));
+            GetWindowText(textFieldVector[i].handle, input_string, sizeof(input_string));
             return atof(input_string);
         }
     }
     return 0.0;
 }
 
-void setInputFieldValue(int inputId, double input_value)
+void setTextFieldValueAsDouble(int inputId, double input_value)
 {
-    SetWindowText(getInputHandle(inputId), TEXT(convertDoubleToChar(input_value)));
+    SetWindowText(getTextFieldHandle(inputId), TEXT(convertDoubleToChar(input_value)));
+}
+
+void setTextFieldValueAsText(int inputId, const char* text)
+{
+    SetWindowText(getTextFieldHandle(inputId), TEXT(text));
 }
 
 
@@ -581,34 +630,39 @@ HWND getButtonHandle(int buttonId)
     return NULL;
 }
 
-HWND getInputHandle(int inputId)
+HWND getTextFieldHandle(int inputId)
 {
-    for (int i = 0; i < inputVector.size(); ++i)
+    for (int i = 0; i < textFieldVector.size(); ++i)
     {
-        if (inputVector[i].id == inputId)
+        if (textFieldVector[i].id == inputId)
         {
-            return inputVector[i].handle;
+            return textFieldVector[i].handle;
         }
     }
     return NULL;
 }
 
-bool get_simulationWindow_status(void)
+bool getCheckBoxState(int buttonId)
+{
+    return SendMessage(getButtonHandle(buttonId), BM_GETCHECK, 0, 0);
+}
+
+bool getSimulationWindowStatus(void)
 {
     return simulationWindow_active;
 }
 
-bool get_controlWindow_status(void)
+bool getControlWindowStatus(void)
 {
     return controlWindow_active;
 }
 
-int get_simulationWindow_width(void)
+int getSimulationWindowWidth(void)
 {
     return simulationWindow_width;
 }
 
-int get_simulationWindow_height(void)
+int getSimulationWindowHeight(void)
 {
     return simulationWindow_height;
 }

@@ -18,7 +18,13 @@
 #define IDC_TEXT_INPUT_POSY             111
 #define IDC_TEXT_INPUT_VELX             112
 #define IDC_TEXT_INPUT_VELY             113
-#define IDC_TEXT_INPUT_DESCRIPTION      114
+#define IDC_TEXT_STATIC_MASS            114
+#define IDC_TEXT_STATIC_RADIUS          115
+#define IDC_TEXT_STATIC_POSX            116
+#define IDC_TEXT_STATIC_POSY            117
+#define IDC_TEXT_STATIC_VELX            118
+#define IDC_TEXT_STATIC_VELY            119
+#define IDC_BUTTON_RANDOMIZE            120
 
 LRESULT CALLBACK                simulationWindow_callback       (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK                controlWindow_callback          (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -33,13 +39,16 @@ LRESULT CALLBACK                customDoubleInput_callback              (HWND hw
 
         void                    updateCalculationTimeText       (long long int calculationDuration);
 
-        double                  getInputFieldValue              (int inputId);
-        void                    setInputFieldValue              (int inputId, double input_value);
+        double                  getTextFieldValueAsDouble       (int inputId);
+        void                    setTextFieldValueAsDouble       (int inputId, double input_value);
+        void                    setTextFieldValueAsText         (int inputId, const char* text);
 
-        bool                    get_simulationWindow_status     (void);
-        bool                    get_controlWindow_status        (void);
-        int                     get_simulationWindow_width      (void);
-        int                     get_simulationWindow_height     (void);
+        bool                    getCheckBoxState                (int buttonId);
+
+        bool                    getSimulationWindowStatus       (void);
+        bool                    getControlWindowStatus          (void);
+        int                     getSimulationWindowWidth        (void);
+        int                     getSimulationWindowHeight       (void);
         void                    writeStartStopButtonText        (const char* text);
         int                     get_presets_selection           (void);
         bool                    isButtonTriggered               (int buttonId);
