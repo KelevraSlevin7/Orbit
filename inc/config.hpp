@@ -114,7 +114,8 @@ extern const char * presetNames[NUMBER_OF_PRESETS];
 #define RADIUS_MIN      5.0
 #define RADIUS_MAX      15.0
 
-
+//velocity drag input scaler
+#define VELOCITY_SCALE_REDUCTION    40
 
 struct objectStruct {
     double mass;

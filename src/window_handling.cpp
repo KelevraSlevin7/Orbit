@@ -20,6 +20,9 @@ int presets_selected_index{0};
 
 static WNDPROC OriginalEditCtrlProc = NULL;
 
+POINT simulationWindwos_leftclickDownPos;
+POINT simulationWindwos_leftclickUpPos;
+
 struct buttonStruct {
     int     id;
     HWND    handle;
@@ -85,16 +88,34 @@ LRESULT CALLBACK simulationWindow_callback(HWND hwnd, UINT uMsg, WPARAM wParam, 
         //left button was clicked inside simulation window
         case WM_LBUTTONDOWN:
         {
-            POINT leftClick_pos;
-            if (GetCursorPos(&leftClick_pos))
+            if (GetCursorPos(&simulationWindwos_leftclickDownPos))
             {
-                if (ScreenToClient(hwnd, &leftClick_pos))
+                if (ScreenToClient(hwnd, &simulationWindwos_leftclickDownPos))
                 {
                     //invert y coordinate
-                    leftClick_pos.y = simulationWindow_height - leftClick_pos.y;
+                    simulationWindwos_leftclickDownPos.y = simulationWindow_height - simulationWindwos_leftclickDownPos.y;
                     //write values to the text fields
-                    setInputFieldValue(IDC_TEXT_INPUT_POSX, double(leftClick_pos.x));
-                    setInputFieldValue(IDC_TEXT_INPUT_POSY, double(leftClick_pos.y));
+                    setInputFieldValue(IDC_TEXT_INPUT_POSX, double(simulationWindwos_leftclickDownPos.x));
+                    setInputFieldValue(IDC_TEXT_INPUT_POSY, double(simulationWindwos_leftclickDownPos.y));
+                }
+            }
+            break;
+        }
+
+        //left button was clicked inside simulation window
+        case WM_LBUTTONUP:
+        {
+            if (GetCursorPos(&simulationWindwos_leftclickUpPos))
+            {
+                if (ScreenToClient(hwnd, &simulationWindwos_leftclickUpPos))
+                {
+                    //invert y coordinate
+                    simulationWindwos_leftclickUpPos.y = simulationWindow_height - simulationWindwos_leftclickUpPos.y;
+                    double vel_x = static_cast<double>(simulationWindwos_leftclickUpPos.x - simulationWindwos_leftclickDownPos.x) / VELOCITY_SCALE_REDUCTION;
+                    double vel_y = static_cast<double>(simulationWindwos_leftclickUpPos.y - simulationWindwos_leftclickDownPos.y) / VELOCITY_SCALE_REDUCTION;
+                    //write values to the text fields
+                    setInputFieldValue(IDC_TEXT_INPUT_VELX, vel_x);
+                    setInputFieldValue(IDC_TEXT_INPUT_VELY, vel_y);
                 }
             }
             break;
