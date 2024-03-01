@@ -340,7 +340,7 @@ void fillControlWindow(HWND parentWindowHandle)
     createButton(parentWindowHandle, "Remove", BUTTON_REMOVE_POSX, BUTTON_REMOVE_POSY, BUTTON_REMOVE_WIDTH, BUTTON_REMOVE_HEIGHT, IDC_BUTTON_REMOVE, BS_DEFPUSHBUTTON);
 
     //create text box to show calculation time of last simulation loop
-    hwndText_CalculationTime = createTextField(parentWindowHandle, "0", TEXT_CALCULATIONTIME_POSX, TEXT_CALCULATIONTIME_POSY, TEXT_CALCULATIONTIME_WIDTH, TEXT_CALCULATIONTIME_HEIGHT, IDC_TEXT_STATIC_CALCTIME, SS_SUNKEN);
+    hwndText_CalculationTime = createTextField(parentWindowHandle, "Loop Time: ", TEXT_CALCULATIONTIME_POSX, TEXT_CALCULATIONTIME_POSY, TEXT_CALCULATIONTIME_WIDTH, TEXT_CALCULATIONTIME_HEIGHT, IDC_TEXT_STATIC_CALCTIME, SS_SUNKEN);
 
     //create input text fields for object creation
     createInputField(parentWindowHandle, "1", TEXT_INPUT_LEFT_POSX,  TEXT_INPUT_MASSRADIUS_POSY, TEXT_INPUT_WIDTH, TEXT_INPUT_HEIGHT, IDC_TEXT_INPUT_MASS,  customDoubleInput_callback);

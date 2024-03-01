@@ -406,8 +406,22 @@ void waitUntilLoopEnd(std::chrono::time_point<std::chrono::high_resolution_clock
     auto loop_end = std::chrono::high_resolution_clock::now();
     auto loop_duration = std::chrono::duration_cast<std::chrono::microseconds>(loop_end - loop_begin).count();
 
-    //output loop duration on window
-    updateCalculationTimeText(loop_duration);
+    static int64_t  loop_duration_sum {0};
+    static int64_t  loop_duration_avg {0};
+    static int avg_counter {0};
+
+    loop_duration_sum += loop_duration;
+    avg_counter++;
+
+    if (avg_counter >= 50)
+    {
+        //calculate average loop duration
+        loop_duration_avg = loop_duration_sum / 50;
+        loop_duration_sum = 0;
+        avg_counter = 0;
+        //output averaged loop duration on window
+        updateCalculationTimeText(loop_duration_avg);
+    }
 
     //repeat loop until fixed time frame is reached
     while (loop_duration < LOOP_TIME_MS * 1000)
