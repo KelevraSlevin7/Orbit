@@ -43,7 +43,6 @@ void            Window_Loop                         (void);
 void            Simulation_Init                     (void);
 void            Simulation_Loop                     (HDC simulationHandle);
 void            checkForButtonTrigger               (HDC simulationHandle);
-void            drawAllObjects                      (HDC simulationHandle);
 void            drawObject                          (unsigned int activeBoid);
 void            drawTrail                           (unsigned int activeBoid);
 void            calculateStableOrbit_startVelocity  (double bigObject_mass, double bigObject_posX, double bigObject_posY, double smallObject_posX, double smallObject_posY, double &smallObject_velX, double &smallObject_velY);
@@ -79,7 +78,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     {
         //receive messages from window interaction and process them
         Window_Loop();
-        
+
         //check if simulation needs to run
         if (simulationStatus == kStart)
         {
@@ -197,8 +196,22 @@ void Simulation_Loop(HDC simulationHandle)
         orbitalObjectVector[iter].updateForce(orbitalObjectVector);
     }
 
-    //draw all objects to the screen
-    drawAllObjects(simulationHandle);
+    //update all positions according to the force and update the trail
+    //and draw the pixels
+    for (unsigned int iter = 0; iter < orbitalObjectVector.size(); iter++)
+    {
+        //update object positions and trail
+        orbitalObjectVector[iter].updatePosition();
+        orbitalObjectVector[iter].updateTrail();
+    
+        //draw Object and Trail
+        drawObject(iter);
+        drawTrail(iter);
+        //orbitalObjectVector[iter].outputInformation(iter);
+    }
+
+    //render everything onto the screen
+    StretchDIBits(simulationHandle, 0, 0, render_state.width, render_state.height, 0, 0, render_state.width, render_state.height, render_state.memory, &render_state.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
 
     waitUntilLoopEnd(loop_begin);
 }
@@ -275,35 +288,23 @@ void checkForButtonTrigger(HDC simulationHandle)
         redraw_needed = true;
     }
     
-    if (redraw_needed == true)
+    //if redraw is needed and simulation is stopped, redraw the screen with the new item (if running, redrawing will be done in the next loop)
+    if ((redraw_needed == true) &&
+        (simulationStatus == kStop))
     {
-        //if simulation is stopped, redraw the screen with the new item
-        if (simulationStatus == kStop)
+        //Simulate Orbital Objects
+        drawLib.fillScreen(0x000000);
+
+        //go through all objects
+        for (unsigned int iter = 0; iter < orbitalObjectVector.size(); iter++)
         {
-            //Simulate Orbital Objects
-            drawLib.fillScreen(0x000000);
-            drawAllObjects(simulationHandle);
+            //draw Object and Trail
+            drawObject(iter);
+            drawTrail(iter);
         }
+        //render everything onto the screen
+        StretchDIBits(simulationHandle, 0, 0, render_state.width, render_state.height, 0, 0, render_state.width, render_state.height, render_state.memory, &render_state.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
     }
-}
-
-void drawAllObjects(HDC simulationHandle)
-{
-    //go through all objects
-    for (unsigned int iter = 0; iter < orbitalObjectVector.size(); iter++)
-    {
-        //update object positions and trail
-        orbitalObjectVector[iter].updatePosition();
-        orbitalObjectVector[iter].updateTrail();
-    
-        //draw Object and Trail
-        drawObject(iter);
-        drawTrail(iter);
-        //orbitalObjectVector[iter].outputInformation(iter);
-    }
-
-    //Render
-    StretchDIBits(simulationHandle, 0, 0, render_state.width, render_state.height, 0, 0, render_state.width, render_state.height, render_state.memory, &render_state.bitmapinfo, DIB_RGB_COLORS, SRCCOPY);
 }
 
 void drawObject(unsigned int activeBoid)
