@@ -2,11 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 project(orbit_simulation)
 
-# add_library(Orbit_Module 
-#     src/main.cpp
-#     src/c_orbit.cpp 
-#     src/window_handling.cpp
-# )
+set(CMAKE_EXE_LINKER_FLAGS "-static -static-libgcc -static-libstdc++")
 
 add_executable(${PROJECT_NAME} 
     src/main.cpp
