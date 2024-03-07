@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(orbit_simulation VERSION 1.0.0)
+project(orbit_simulation VERSION 1.0.1)
 
 set(EXECUTABLE_NAME "${PROJECT_NAME}_v${CMAKE_PROJECT_VERSION}")
 
