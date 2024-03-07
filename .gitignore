@@ -1,7 +1,9 @@
 #ignore all vscode stuff
 .vscode/
 
+#ignore everything in build path
 build/
+
 #to exlude everything in build folder except the .exe
 # !build/
 # build/*
